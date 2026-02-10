@@ -1,0 +1,74 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-10T10:50:59.619Z",
+  "summary": "Diff adds a tabbed multi-section UI (Characters/Worldbuilding/Prologue), project switching with create/rename/delete, guided editors for characters/worldbuilding/prologue, Markdown export, theme styling, and uses generated images in the app header. Backend adds an in-canister data model and some project CRUD, but persistence across upgrades and at least one required prologue prompt appear missing based on the visible diff.",
+  "missing_requirements": [
+    {
+      "id": "REQ-5",
+      "requirement": "Prologue section must include guided prompts including Tone, and persist/save them per project.",
+      "reason": "The Prologue type and editor/outline/export shown include hook, POV/voice, stakes, key reveals, and connection to chapter one, but do not include a Tone field/prompt anywhere in the visible code.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/components/prologue/PrologueEditor.tsx",
+        "frontend/src/components/prologue/PrologueOutlineView.tsx",
+        "frontend/src/lib/exportProject.ts"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "All backend data must persist across canister upgrades using stable storage patterns.",
+      "reason": "The backend snippet shows `let projects = Map.empty<Text, BookProject>();` with no `stable` variables or upgrade hooks visible; this suggests data would not persist across upgrades (and may not persist reliably across reloads depending on deployment lifecycle).",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Internet Identity authentication/provider wiring (identity-aware actor creation and InternetIdentityProvider) even though authentication was not required.",
+      "reason": "BuildRequest did not request implementing authentication flows; it only specified a non-goal of not implementing third-party providers and said 'only Internet Identity if authentication is later needed'. The diff introduces II provider usage and identity-based actor recreation.",
+      "evidence": [
+        "frontend/src/main.tsx",
+        "frontend/src/hooks/useActor.ts",
+        "frontend/src/hooks/useInternetIdentity.ts"
+      ]
+    },
+    {
+      "description": "Footer attribution link to caffeine.ai (including 'Built with ❤️').",
+      "reason": "Not requested in BuildRequest requirements/theme/image requirements; this is extra user-facing content.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.68,
+  "changed_files": [
+    "all_files_summary.json",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/index.css",
+    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AppHeader.tsx",
+    "frontend/src/components/ExportProjectButton.tsx",
+    "frontend/src/components/ProjectSwitcher.tsx",
+    "frontend/src/components/characters/CharacterQuestionnaire.tsx",
+    "frontend/src/components/characters/CharacterSummary.tsx",
+    "frontend/src/components/prologue/PrologueEditor.tsx",
+    "frontend/src/components/prologue/PrologueOutlineView.tsx",
+    "frontend/src/components/worldbuilding/WorldbuildingCategoryEditor.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/lib/exportProject.ts",
+    "frontend/src/main.tsx",
+    "frontend/src/sections/CharactersPage.tsx",
+    "frontend/src/sections/ProloguePage.tsx",
+    "frontend/src/sections/WorldbuildingPage.tsx",
+    "frontend/src/state/useProjects.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}

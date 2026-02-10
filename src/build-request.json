@@ -1,0 +1,192 @@
+{
+  "kind": "build_request",
+  "title": "Book Writing Assistant: Guided character, worldbuilding, and prologue sections",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Create a multi-section web app for planning and drafting a book, with a clear top-level navigation between sections for Characters, Worldbuilding, and Prologue.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Online and create an app that helps with writing a full book characters backgrounds of the characters and even helps right pretty girls and I belongs and prologues There's different sections..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "App has a primary navigation that lets a user switch between Characters, Worldbuilding, and Prologue sections without losing saved data.",
+        "Each section has its own page/screen with a clear title and short description."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement a “Book Project” concept so users can create, view, rename, and delete writing projects (each project contains its own characters, worldbuilding notes, and prologue drafts).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "...an app that helps with writing a full book... There's different sections..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can create a new project with at least a title.",
+        "User can select a project to work on; selected project context is visible in the UI.",
+        "Deleting a project removes its associated characters/worldbuilding/prologue data.",
+        "All project data persists across page reloads."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add a Character section that provides guided character-building prompts as a structured questionnaire, covering core identity, background, motivations, relationships, flaws, voice, and story role.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "...the character section ask you all kinds of different questions not only to help you world build but to help with actually building a character"
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can create multiple characters under a project.",
+        "Each character has a guided question form with multiple categories (at minimum: Identity, Background, Motivation/Goals, Conflicts/Flaws, Relationships, Voice/Dialogue, Arc/Role).",
+        "Answers are saved per character and persist across reloads.",
+        "User can view a read-only “Character Summary” compiled from their answers."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a Worldbuilding section with guided prompts to help define setting, cultures, rules/systems (e.g., magic/technology), politics, geography, history, and themes; allow freeform notes per category.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "...not only to help you world build..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Worldbuilding page includes multiple prompt categories (at minimum: Setting, History, Culture/Society, Geography, Politics/Power, Rules/Systems, Themes/Tone).",
+        "User can enter and save responses/notes per category for the selected project.",
+        "Worldbuilding entries persist across reloads.",
+        "UI supports both short prompt answers and longer freeform notes."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add a Prologue section that helps the user draft and structure a prologue via guided prompts (hook, POV/voice, stakes, key reveals, and how it connects to chapter one) and provides a draft editor area.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "...and prologues"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Prologue section contains guided prompts (at minimum: Hook, POV/Voice, Stakes, Key Information/Reveals, Tone, Connection to Chapter One).",
+        "User can write and save a prologue draft text for the selected project.",
+        "User can view an “Outline View” that shows prompt answers alongside the draft.",
+        "Prologue data persists across reloads."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Provide export capabilities for a selected project: export character summaries, worldbuilding notes, and prologue draft into a single downloadable plain-text or Markdown file.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "...helps with writing a full book..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Export action downloads a file to the user’s device (no external services).",
+        "Export includes the project title and clearly separated sections for Characters, Worldbuilding, and Prologue.",
+        "Exported content reflects the latest saved data."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Implement backend storage APIs in the single Motoko actor to support CRUD operations for projects, characters (including their questionnaire answers), worldbuilding categories/notes, and prologue prompts/draft.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "...create an app that helps with writing a full book... There's different sections..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes methods to create/list/update/delete projects.",
+        "Backend exposes methods to create/list/update/delete characters within a project, including saving prompt answers.",
+        "Backend exposes methods to save/load worldbuilding notes per project and category.",
+        "Backend exposes methods to save/load prologue prompt answers and the prologue draft per project.",
+        "All data persists across canister upgrades using stable storage patterns (no external database)."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Add a consistent, creative visual theme for the app (colors, typography, layout) suitable for an authoring/planning tool, and apply it across all pages and components.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Online and create an app..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Theme is applied consistently across navigation, forms, and section pages.",
+        "Theme avoids default-looking styling; uses a cohesive palette and typographic hierarchy.",
+        "Do not use a blue/purple primary palette unless explicitly requested later."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add generated static images as part of the UI theme and render them from frontend/public/assets/generated (do not serve images from the backend).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "Online and create an app..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Generated images are placed under frontend/public/assets/generated and referenced directly by the frontend.",
+        "At least one generated image is visible in the app shell (e.g., header/landing area) without breaking layout on mobile."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
+    "Do not edit any files under frontend/src/components/ui (compose them instead).",
+    "Do not edit files in frontend immutable paths (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Use English for all user-facing text."
+  ],
+  "nonGoals": [
+    "Do not implement third-party authentication providers (only Internet Identity if authentication is later needed).",
+    "Do not implement AI/LLM text generation or external AI service integrations.",
+    "Do not implement real-time collaboration, chat, or WebSocket-based features.",
+    "Do not implement payments or subscriptions."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Vintage typewriter on a desk with warm paper textures, flat illustration style (hero-illustration.dim_1600x600.png)",
+      "Minimal quill-and-book emblem, monochrome, vector-like (app-mark.dim_512x512.png)"
+    ],
+    "edits": []
+  }
+}

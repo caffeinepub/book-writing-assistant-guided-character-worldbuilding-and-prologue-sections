@@ -1,0 +1,163 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-multi-section-web-app-for-planning-and-drafting-a-book-with-a-clear-top-level-navigation-between-sections-for-characters-worldbuilding-and-prologue",
+      "featureTitle": "Create a multi-section web app for planning and drafting a book, with a clear top-level navigation between sections for Characters, Worldbuilding, and Prologue.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/sections/CharactersPage.tsx",
+        "frontend/src/sections/ProloguePage.tsx",
+        "frontend/src/sections/WorldbuildingPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-book-project-concept-so-users-can-create-view-rename-and-delete-writing-projects-each-project-contains-its-own-characters-worldbuilding-notes-and-prologue-drafts",
+      "featureTitle": "Implement a “Book Project” concept so users can create, view, rename, and delete writing projects (each project contains its own characters, worldbuilding notes, and prologue drafts).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/ProjectSwitcher.tsx",
+        "frontend/src/state/useProjects.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-character-section-that-provides-guided-character-building-prompts-as-a-structured-questionnaire-covering-core-identity-background-motivations-relationships-flaws-voice-and-story-role",
+      "featureTitle": "Add a Character section that provides guided character-building prompts as a structured questionnaire, covering core identity, background, motivations, relationships, flaws, voice, and story role.",
+      "files": [
+        "frontend/src/components/characters/CharacterQuestionnaire.tsx",
+        "frontend/src/components/characters/CharacterSummary.tsx",
+        "frontend/src/sections/CharactersPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-worldbuilding-section-with-guided-prompts-to-help-define-setting-cultures-rules-systems-e-g-magic-technology-politics-geography-history-and-themes-allow-freeform-notes-per-category",
+      "featureTitle": "Add a Worldbuilding section with guided prompts to help define setting, cultures, rules/systems (e.g., magic/technology), politics, geography, history, and themes; allow freeform notes per category.",
+      "files": [
+        "frontend/src/components/worldbuilding/WorldbuildingCategoryEditor.tsx",
+        "frontend/src/sections/WorldbuildingPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-prologue-section-that-helps-the-user-draft-and-structure-a-prologue-via-guided-prompts-hook-pov-voice-stakes-key-reveals-and-how-it-connects-to-chapter-one-and-provides-a-draft-editor-area",
+      "featureTitle": "Add a Prologue section that helps the user draft and structure a prologue via guided prompts (hook, POV/voice, stakes, key reveals, and how it connects to chapter one) and provides a draft editor area.",
+      "files": [
+        "frontend/src/components/prologue/PrologueEditor.tsx",
+        "frontend/src/components/prologue/PrologueOutlineView.tsx",
+        "frontend/src/sections/ProloguePage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-provide-export-capabilities-for-a-selected-project-export-character-summaries-worldbuilding-notes-and-prologue-draft-into-a-single-downloadable-plain-text-or-markdown-file",
+      "featureTitle": "Provide export capabilities for a selected project: export character summaries, worldbuilding notes, and prologue draft into a single downloadable plain-text or Markdown file.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/ExportProjectButton.tsx",
+        "frontend/src/lib/exportProject.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-consistent-creative-visual-theme-for-the-app-colors-typography-layout-suitable-for-an-authoring-planning-tool-and-apply-it-across-all-pages-and-components",
+      "featureTitle": "Add a consistent, creative visual theme for the app (colors, typography, layout) suitable for an authoring/planning tool, and apply it across all pages and components.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-generated-static-images-as-part-of-the-ui-theme-and-render-them-from-frontend-public-assets-generated-do-not-serve-images-from-the-backend",
+      "featureTitle": "Add generated static images as part of the UI theme and render them from frontend/public/assets/generated (do not serve images from the backend).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/AppHeader.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

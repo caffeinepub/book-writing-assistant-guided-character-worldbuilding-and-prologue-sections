@@ -1,0 +1,19 @@
+{
+  "frontend/src/App.tsx": "Main application shell with tab navigation between Characters, Worldbuilding, and Prologue sections, project switcher, export functionality, and footer with attribution.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including project CRUD, character creation, worldbuilding updates, and prologue saving with automatic cache invalidation.",
+  "frontend/src/state/useProjects.ts": "Custom hook managing project selection state with localStorage persistence and auto-selection logic for the active project.",
+  "frontend/src/components/AppHeader.tsx": "Application header displaying the app logo, title, and decorative hero illustration from generated assets.",
+  "frontend/src/components/ProjectSwitcher.tsx": "Dropdown menu component for creating, selecting, renaming, and deleting book projects with confirmation dialogs.",
+  "frontend/src/components/ExportProjectButton.tsx": "Button component that triggers project export to downloadable Markdown file containing all project data.",
+  "frontend/src/lib/exportProject.ts": "Utility function that formats project data (characters, worldbuilding, prologue) into a structured Markdown document and triggers browser download.",
+  "frontend/src/sections/CharactersPage.tsx": "Characters section page displaying character list with create/view functionality and dialogs for questionnaire and summary views.",
+  "frontend/src/sections/WorldbuildingPage.tsx": "Worldbuilding section page with accordion of seven categories (Setting, History, Culture, Geography, Politics, Rules, Themes) each with guided prompts.",
+  "frontend/src/sections/ProloguePage.tsx": "Prologue section page with tabbed interface switching between editor mode and outline view for planning and drafting the story opening.",
+  "frontend/src/components/characters/CharacterQuestionnaire.tsx": "Multi-section accordion form for creating characters with guided prompts covering identity, motivations, relationships, flaws, voice, and story role.",
+  "frontend/src/components/characters/CharacterSummary.tsx": "Read-only display component showing all saved character details organized by category in card layout.",
+  "frontend/src/components/worldbuilding/WorldbuildingCategoryEditor.tsx": "Editor component for worldbuilding categories with description textarea, prompt hints, and ability to add freeform notes.",
+  "frontend/src/components/prologue/PrologueEditor.tsx": "Accordion-based editor for prologue planning prompts (hook, POV, stakes, reveals, connection) plus draft textarea with save functionality.",
+  "frontend/src/components/prologue/PrologueOutlineView.tsx": "Read-only view displaying prologue planning prompts and draft in organized card layout for review.",
+  "frontend/src/index.css": "Global styles with warm parchment/sepia OKLCH color palette for light mode and dark ink theme for dark mode, avoiding blue/purple tones.",
+  "frontend/tailwind.config.js": "Tailwind configuration with custom serif font (Merriweather) for headings, warm color tokens, and extended design system utilities."
+}

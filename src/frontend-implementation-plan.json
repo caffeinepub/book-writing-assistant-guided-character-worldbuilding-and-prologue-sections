@@ -1,0 +1,217 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Book Writing Assistant (Projects + Characters, Worldbuilding, Prologue)",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Create a multi-section app shell with top-level navigation for Characters, Worldbuilding, and Prologue pages.",
+      "acceptanceCriteria": [
+        "App has a primary navigation that lets a user switch between Characters, Worldbuilding, and Prologue sections without losing saved data.",
+        "Each section has its own page/screen with a clear title and short description."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "create",
+          "description": "Create the app shell layout and section navigation (Characters/Worldbuilding/Prologue) with a persistent layout. Use shadcn-ui navigation primitives (e.g., Tabs/Buttons) to switch sections while preserving in-memory form state where applicable. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/sections/CharactersPage.tsx",
+          "operation": "create",
+          "description": "Add the Characters section screen with a clear title and short description; compose shadcn-ui layout components (Card, Separator, etc.). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/sections/WorldbuildingPage.tsx",
+          "operation": "create",
+          "description": "Add the Worldbuilding section screen with a clear title and short description; compose shadcn-ui layout components. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/sections/ProloguePage.tsx",
+          "operation": "create",
+          "description": "Add the Prologue section screen with a clear title and short description; compose shadcn-ui layout components. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement Book Projects UI (create/select/rename/delete) with selected project context and persistence across reloads.",
+      "acceptanceCriteria": [
+        "User can create a new project with at least a title.",
+        "User can select a project to work on; selected project context is visible in the UI.",
+        "Deleting a project removes its associated characters/worldbuilding/prologue data.",
+        "All project data persists across page reloads."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/state/useProjects.ts",
+          "operation": "create",
+          "description": "Create a projects state hook using React Query that loads the project list, loads a selected project, and performs create/rename/delete via the backend actor from core-infrastructure (useActor). Persist selected project id in localStorage to survive reloads."
+        },
+        {
+          "path": "frontend/src/components/ProjectSwitcher.tsx",
+          "operation": "create",
+          "description": "Create a Project Switcher UI (select project + create/rename/delete actions) using shadcn-ui components (DropdownMenu, Dialog, Input, Button). Show the active project name in the app header. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the ProjectSwitcher into the app shell and ensure selected project context is visible and used by all sections. Ensure section switching does not clear the selected project."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add guided character-building questionnaires per project with multiple characters and a compiled read-only Character Summary view.",
+      "acceptanceCriteria": [
+        "User can create multiple characters under a project.",
+        "Each character has a guided question form with multiple categories (at minimum: Identity, Background, Motivation/Goals, Conflicts/Flaws, Relationships, Voice/Dialogue, Arc/Role).",
+        "Answers are saved per character and persist across reloads.",
+        "User can view a read-only “Character Summary” compiled from their answers."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/characters/CharacterQuestionnaire.tsx",
+          "operation": "create",
+          "description": "Create a structured character questionnaire UI grouped by required categories using shadcn-ui form/layout components (Accordion, Card, Input, Textarea). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/CharacterSummary.tsx",
+          "operation": "create",
+          "description": "Create a read-only Character Summary component that compiles the saved answers into a readable overview using shadcn-ui typography/layout components. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/sections/CharactersPage.tsx",
+          "operation": "modify",
+          "description": "Implement character list + create flow scoped to the selected project: allow adding multiple characters by submitting the questionnaire and saving via the backend actor; show existing characters for the project and allow opening a summary view for each. Use core-infrastructure actor access (useActor via the projects hook) and shadcn-ui components for list/dialog patterns. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add guided worldbuilding categories with prompts and freeform notes per category, saved per project.",
+      "acceptanceCriteria": [
+        "Worldbuilding page includes multiple prompt categories (at minimum: Setting, History, Culture/Society, Geography, Politics/Power, Rules/Systems, Themes/Tone).",
+        "User can enter and save responses/notes per category for the selected project.",
+        "Worldbuilding entries persist across reloads.",
+        "UI supports both short prompt answers and longer freeform notes."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/worldbuilding/WorldbuildingCategoryEditor.tsx",
+          "operation": "create",
+          "description": "Create a reusable category editor that supports a short prompt/description field and longer freeform notes list/add UI using shadcn-ui components (Textarea, Input, Button, Card). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/sections/WorldbuildingPage.tsx",
+          "operation": "modify",
+          "description": "Render the required worldbuilding categories (Setting, History, Culture/Society, Geography, Politics/Power, Rules/Systems, Themes/Tone) and wire save actions to the backend actor for updating category descriptions and adding freeform notes under the selected project. Use shadcn-ui layout components. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add guided prologue prompts plus a draft editor and an Outline View combining prompts and draft for the selected project.",
+      "acceptanceCriteria": [
+        "Prologue section contains guided prompts (at minimum: Hook, POV/Voice, Stakes, Key Information/Reveals, Tone, Connection to Chapter One).",
+        "User can write and save a prologue draft text for the selected project.",
+        "User can view an “Outline View” that shows prompt answers alongside the draft.",
+        "Prologue data persists across reloads."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/prologue/PrologueEditor.tsx",
+          "operation": "create",
+          "description": "Create a prologue editor component with guided prompt inputs (including Tone) plus a draft text editor area, using shadcn-ui form components (Textarea, Input, Tabs). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/prologue/PrologueOutlineView.tsx",
+          "operation": "create",
+          "description": "Create an Outline View that presents saved prompt answers alongside the current/saved draft in a readable layout using shadcn-ui Cards/typography. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/sections/ProloguePage.tsx",
+          "operation": "modify",
+          "description": "Wire the prologue prompts + draft saving for the selected project via the backend actor and provide a toggle between editing and Outline View. Ensure data is loaded from the selected project's current state and persisted across reloads. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Enable exporting the selected project into a downloadable plain-text/Markdown file including Characters, Worldbuilding, and Prologue.",
+      "acceptanceCriteria": [
+        "Export action downloads a file to the user’s device (no external services).",
+        "Export includes the project title and clearly separated sections for Characters, Worldbuilding, and Prologue.",
+        "Exported content reflects the latest saved data."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/exportProject.ts",
+          "operation": "create",
+          "description": "Implement a utility that formats the selected project's latest loaded data into a single Markdown/plain-text string with clear headings for Characters (summaries), Worldbuilding (categories + notes), and Prologue (prompts + draft)."
+        },
+        {
+          "path": "frontend/src/components/ExportProjectButton.tsx",
+          "operation": "create",
+          "description": "Create an Export button component that generates a Blob from the formatted content and triggers a client-side download; use shadcn-ui Button and optional DropdownMenu for format selection. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Place the export action in the app shell (e.g., header toolbar) and ensure it exports the currently selected project's latest loaded/saved data."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Apply a consistent creative theme (non-blue/purple primary) across navigation, forms, and section pages.",
+      "acceptanceCriteria": [
+        "Theme is applied consistently across navigation, forms, and section pages.",
+        "Theme avoids default-looking styling; uses a cohesive palette and typographic hierarchy.",
+        "Do not use a blue/purple primary palette unless explicitly requested later."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "create",
+          "description": "Create global styling/theme variables and base styles (Tailwind + shadcn token variables) using a warm, authoring-themed palette (e.g., parchment/ink/sepia) and clear typography hierarchy; explicitly avoid blue/purple as the primary color."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Apply consistent layout spacing, typography, and component variants across the shell and all sections (compose shadcn-ui components; do not edit frontend/src/components/ui). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add and display generated static theme images from frontend/public/assets/generated in the UI shell.",
+      "acceptanceCriteria": [
+        "Generated images are placed under frontend/public/assets/generated and referenced directly by the frontend.",
+        "At least one generated image is visible in the app shell (e.g., header/landing area) without breaking layout on mobile."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/hero-illustration.dim_1600x600.png",
+          "operation": "create",
+          "description": "Add the generated image asset file: frontend/public/assets/generated/hero-illustration.dim_1600x600.png (Vintage typewriter on a desk with warm paper textures, flat illustration style)."
+        },
+        {
+          "path": "frontend/public/assets/generated/app-mark.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the generated image asset file: frontend/public/assets/generated/app-mark.dim_512x512.png (Minimal quill-and-book emblem, monochrome, vector-like)."
+        },
+        {
+          "path": "frontend/src/components/AppHeader.tsx",
+          "operation": "create",
+          "description": "Create an app header that renders the generated images from frontend/public/assets/generated (use the emblem as a mark and the hero illustration as a responsive decorative element) while keeping mobile layout intact; compose shadcn-ui components where helpful. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire AppHeader into the app shell so at least one generated image is visible globally without breaking mobile layout."
+        }
+      ]
+    }
+  ]
+}
