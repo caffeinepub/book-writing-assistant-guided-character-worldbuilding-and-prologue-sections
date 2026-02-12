@@ -15,7 +15,7 @@ export default function ExportProjectButton() {
 
     try {
       exportProject(selectedProject);
-      toast.success('Project exported successfully');
+      toast.success('Book boyfriend project exported successfully');
     } catch (error) {
       toast.error('Failed to export project');
       console.error(error);
@@ -25,7 +25,7 @@ export default function ExportProjectButton() {
   return (
     <Button onClick={handleExport} variant="outline" className="gap-2">
       <Download className="w-4 h-4" />
-      Export Project
+      Export Book Boyfriend Project
     </Button>
   );
 }

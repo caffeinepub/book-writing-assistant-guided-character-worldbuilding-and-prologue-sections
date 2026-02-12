@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FolderOpen, Pencil, Trash2, Check } from 'lucide-react';
+import { Plus, FolderOpen, Pencil, Trash2, Check, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -33,32 +33,35 @@ import { useProjects } from '../state/useProjects';
 import { useCreateProject, useRenameProject, useDeleteProject } from '../hooks/useQueries';
 import { toast } from 'sonner';
 
-export default function ProjectSwitcher() {
+interface ProjectSwitcherProps {
+  onOpenQuestionnaire?: (projectId: string) => void;
+}
+
+export default function ProjectSwitcher({ onOpenQuestionnaire }: ProjectSwitcherProps) {
   const { projects, selectedProjectId, selectedProject, setSelectedProjectId } = useProjects();
   const createProject = useCreateProject();
   const renameProject = useRenameProject();
   const deleteProject = useDeleteProject();
 
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [renameProjectId, setRenameProjectId] = useState<string | null>(null);
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
 
-  const handleCreate = async () => {
-    if (!projectName.trim()) {
-      toast.error('Please enter a project name');
-      return;
-    }
-
+  const handleCreateNewProject = async () => {
     const id = `project_${Date.now()}`;
+    const defaultName = `New Project ${projects.length + 1}`;
+    
     try {
-      await createProject.mutateAsync({ id, name: projectName.trim() });
+      await createProject.mutateAsync({ id, name: defaultName });
       setSelectedProjectId(id);
-      setShowCreateDialog(false);
-      setProjectName('');
       toast.success('Project created successfully');
+      
+      // Open questionnaire immediately after creating project
+      if (onOpenQuestionnaire) {
+        onOpenQuestionnaire(id);
+      }
     } catch (error) {
       toast.error('Failed to create project');
       console.error(error);
@@ -109,6 +112,12 @@ export default function ProjectSwitcher() {
   const openDeleteDialog = (id: string) => {
     setDeleteProjectId(id);
     setShowDeleteDialog(true);
+  };
+
+  const handleOpenQuestionnaireForSelected = () => {
+    if (selectedProjectId && onOpenQuestionnaire) {
+      onOpenQuestionnaire(selectedProjectId);
+    }
   };
 
   return (
@@ -163,44 +172,22 @@ export default function ProjectSwitcher() {
               </div>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowCreateDialog(true)} className="cursor-pointer">
+            <DropdownMenuItem onClick={handleCreateNewProject} className="cursor-pointer" disabled={createProject.isPending}>
               <Plus className="w-4 h-4 mr-2" />
-              New Project
+              {createProject.isPending ? 'Creating...' : 'New Project'}
             </DropdownMenuItem>
+            {selectedProjectId && onOpenQuestionnaire && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleOpenQuestionnaireForSelected} className="cursor-pointer">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Book Setup Questionnaire
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
-            <DialogDescription>
-              Give your book project a name to get started.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
-              <Input
-                id="project-name"
-                placeholder="My Epic Fantasy Novel"
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate} disabled={createProject.isPending}>
-              {createProject.isPending ? 'Creating...' : 'Create Project'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
         <DialogContent>
@@ -217,7 +204,12 @@ export default function ProjectSwitcher() {
                 id="rename-project"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleRename();
+                  }
+                }}
               />
             </div>
           </div>

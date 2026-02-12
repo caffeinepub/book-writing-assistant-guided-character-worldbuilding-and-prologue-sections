@@ -1,19 +1,33 @@
 import { useState } from 'react';
-import { Plus, User } from 'lucide-react';
+import { Plus, User, Users, UsersRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useProjects } from '../state/useProjects';
 import CharacterQuestionnaire from '../components/characters/CharacterQuestionnaire';
 import CharacterSummary from '../components/characters/CharacterSummary';
+import CreateBandWizardDialog from '../components/characters/CreateBandWizardDialog';
+import MultiCharacterQuestionnaireDialog from '../components/characters/MultiCharacterQuestionnaireDialog';
 import type { CharacterView } from '../backend';
 
 export default function CharactersPage() {
   const { selectedProject } = useProjects();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showBandWizard, setShowBandWizard] = useState(false);
+  const [showMultiCharacterQuestionnaire, setShowMultiCharacterQuestionnaire] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterView | null>(null);
+  const [editingCharacter, setEditingCharacter] = useState<CharacterView | null>(null);
 
   const characters = selectedProject?.characters || [];
+
+  const handleEditCharacter = (character: CharacterView) => {
+    setSelectedCharacter(null);
+    setEditingCharacter(character);
+  };
+
+  const handleEditComplete = () => {
+    setEditingCharacter(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -21,13 +35,23 @@ export default function CharactersPage() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Characters</h2>
           <p className="text-muted-foreground mt-1">
-            Build rich, believable characters through guided prompts
+            Create compelling characters through guided prompts
           </p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          New Character
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowMultiCharacterQuestionnaire(true)} variant="outline" className="gap-2">
+            <UsersRound className="w-4 h-4" />
+            Family Questionnaire
+          </Button>
+          <Button onClick={() => setShowBandWizard(true)} variant="outline" className="gap-2">
+            <Users className="w-4 h-4" />
+            Create Band/Group
+          </Button>
+          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            New Character
+          </Button>
+        </div>
       </div>
 
       {characters.length === 0 ? (
@@ -38,10 +62,20 @@ export default function CharactersPage() {
             <p className="text-muted-foreground text-center mb-4 max-w-md">
               Create your first character to start building your story's cast
             </p>
-            <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Create Character
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowMultiCharacterQuestionnaire(true)} variant="outline" className="gap-2">
+                <UsersRound className="w-4 h-4" />
+                Family Questionnaire
+              </Button>
+              <Button onClick={() => setShowBandWizard(true)} variant="outline" className="gap-2">
+                <Users className="w-4 h-4" />
+                Create Band/Group
+              </Button>
+              <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Create Character
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -76,7 +110,7 @@ export default function CharactersPage() {
           <DialogHeader>
             <DialogTitle>Create New Character</DialogTitle>
             <DialogDescription>
-              Answer the guided prompts to build a rich, multi-dimensional character
+              Answer the guided prompts to build a multi-dimensional character
             </DialogDescription>
           </DialogHeader>
           <CharacterQuestionnaire
@@ -86,13 +120,55 @@ export default function CharactersPage() {
         </DialogContent>
       </Dialog>
 
+      <CreateBandWizardDialog
+        open={showBandWizard}
+        onOpenChange={setShowBandWizard}
+      />
+
+      <MultiCharacterQuestionnaireDialog
+        open={showMultiCharacterQuestionnaire}
+        onOpenChange={setShowMultiCharacterQuestionnaire}
+      />
+
       <Dialog open={!!selectedCharacter} onOpenChange={() => setSelectedCharacter(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedCharacter?.name}</DialogTitle>
-            <DialogDescription>Character Summary</DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>{selectedCharacter?.name}</DialogTitle>
+                <DialogDescription>Character Profile</DialogDescription>
+              </div>
+              {selectedCharacter && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditCharacter(selectedCharacter)}
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           {selectedCharacter && <CharacterSummary character={selectedCharacter} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingCharacter} onOpenChange={() => setEditingCharacter(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Character</DialogTitle>
+            <DialogDescription>
+              Update the character's details
+            </DialogDescription>
+          </DialogHeader>
+          {editingCharacter && (
+            <CharacterQuestionnaire
+              mode="edit"
+              initialData={editingCharacter}
+              onComplete={handleEditComplete}
+              onCancel={handleEditComplete}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

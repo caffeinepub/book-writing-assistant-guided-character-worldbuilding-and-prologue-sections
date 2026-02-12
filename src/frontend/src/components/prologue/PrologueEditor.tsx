@@ -49,9 +49,9 @@ export default function PrologueEditor({ prologue }: PrologueEditorProps) {
         projectId: selectedProjectId,
         ...formData,
       });
-      toast.success('Prologue saved successfully');
+      toast.success('First encounter saved successfully');
     } catch (error) {
-      toast.error('Failed to save prologue');
+      toast.error('Failed to save first encounter');
       console.error(error);
     }
   };
@@ -86,11 +86,11 @@ export default function PrologueEditor({ prologue }: PrologueEditorProps) {
           <AccordionContent className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="povVoice">
-                Whose perspective tells this prologue? What's the narrative voice and tone?
+                Whose perspective tells this opening? What's the narrative voice and tone?
               </Label>
               <Textarea
                 id="povVoice"
-                placeholder="Describe the point of view, narrative voice, and tone of the prologue..."
+                placeholder="Describe the point of view, narrative voice, and tone of the opening..."
                 value={formData.povVoice}
                 onChange={(e) => updateField('povVoice', e.target.value)}
                 rows={4}
@@ -122,7 +122,7 @@ export default function PrologueEditor({ prologue }: PrologueEditorProps) {
           <AccordionContent className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="keyReveals">
-                What essential information does the prologue reveal? What mysteries does it introduce?
+                What essential information does the opening reveal? What mysteries does it introduce?
               </Label>
               <Textarea
                 id="keyReveals"
@@ -140,11 +140,11 @@ export default function PrologueEditor({ prologue }: PrologueEditorProps) {
           <AccordionContent className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="connectionToChapterOne">
-                How does this prologue connect to or contrast with the opening chapter?
+                How does this opening connect to or contrast with the first chapter?
               </Label>
               <Textarea
                 id="connectionToChapterOne"
-                placeholder="Describe how the prologue sets up or contrasts with Chapter One..."
+                placeholder="Describe how the opening sets up or contrasts with Chapter One..."
                 value={formData.connectionToChapterOne}
                 onChange={(e) => updateField('connectionToChapterOne', e.target.value)}
                 rows={4}
@@ -155,10 +155,10 @@ export default function PrologueEditor({ prologue }: PrologueEditorProps) {
       </Accordion>
 
       <div className="space-y-2 pt-4">
-        <Label htmlFor="draft">Prologue Draft</Label>
+        <Label htmlFor="draft">Opening Draft</Label>
         <Textarea
           id="draft"
-          placeholder="Write your prologue here..."
+          placeholder="Write your opening here..."
           value={formData.draft}
           onChange={(e) => updateField('draft', e.target.value)}
           rows={16}
@@ -168,7 +168,7 @@ export default function PrologueEditor({ prologue }: PrologueEditorProps) {
 
       <div className="flex justify-end pt-4">
         <Button onClick={handleSave} disabled={savePrologue.isPending}>
-          {savePrologue.isPending ? 'Saving...' : 'Save Prologue'}
+          {savePrologue.isPending ? 'Saving...' : 'Save First Encounter'}
         </Button>
       </div>
     </div>

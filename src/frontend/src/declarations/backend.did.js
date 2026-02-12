@@ -8,6 +8,11 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
+});
 export const WorldbuildingCategoryView = IDL.Record({
   'description' : IDL.Text,
   'freeformNotes' : IDL.Vec(IDL.Text),
@@ -36,8 +41,29 @@ export const BookProjectView = IDL.Record({
   'characters' : IDL.Vec(CharacterView),
   'prologue' : IDL.Opt(PrologueView),
 });
+export const BookSetupWorldbuildingCategoryAnswers = IDL.Record({
+  'categoryName' : IDL.Text,
+  'description' : IDL.Text,
+  'freeformNotes' : IDL.Vec(IDL.Text),
+});
+export const BookSetupCharacterAnswers = IDL.Record({
+  'flaws' : IDL.Text,
+  'background' : IDL.Text,
+  'voice' : IDL.Text,
+  'name' : IDL.Text,
+  'role' : IDL.Text,
+  'motivations' : IDL.Text,
+  'relationships' : IDL.Text,
+});
+export const BookSetupAnswers = IDL.Record({
+  'worldbuilding' : IDL.Vec(BookSetupWorldbuildingCategoryAnswers),
+  'hasPrologue' : IDL.Bool,
+  'characters' : IDL.Vec(BookSetupCharacterAnswers),
+});
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 
 export const idlService = IDL.Service({
+  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addCharacter' : IDL.Func(
       [
         IDL.Text,
@@ -53,13 +79,43 @@ export const idlService = IDL.Service({
       [],
     ),
   'addWorldbuildingNote' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createProject' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'deleteProject' : IDL.Func([IDL.Text], [], []),
   'getAllProjects' : IDL.Func([], [IDL.Vec(BookProjectView)], ['query']),
+  'getBookSetupAnswers' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(BookSetupAnswers)],
+      ['query'],
+    ),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getProject' : IDL.Func([IDL.Text], [BookProjectView], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'renameProject' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'saveBookSetupAnswers' : IDL.Func([IDL.Text, BookSetupAnswers], [], []),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'savePrologue' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
+  'updateCharacter' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
       [],
       [],
     ),
@@ -73,6 +129,11 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
+  });
   const WorldbuildingCategoryView = IDL.Record({
     'description' : IDL.Text,
     'freeformNotes' : IDL.Vec(IDL.Text),
@@ -101,8 +162,29 @@ export const idlFactory = ({ IDL }) => {
     'characters' : IDL.Vec(CharacterView),
     'prologue' : IDL.Opt(PrologueView),
   });
+  const BookSetupWorldbuildingCategoryAnswers = IDL.Record({
+    'categoryName' : IDL.Text,
+    'description' : IDL.Text,
+    'freeformNotes' : IDL.Vec(IDL.Text),
+  });
+  const BookSetupCharacterAnswers = IDL.Record({
+    'flaws' : IDL.Text,
+    'background' : IDL.Text,
+    'voice' : IDL.Text,
+    'name' : IDL.Text,
+    'role' : IDL.Text,
+    'motivations' : IDL.Text,
+    'relationships' : IDL.Text,
+  });
+  const BookSetupAnswers = IDL.Record({
+    'worldbuilding' : IDL.Vec(BookSetupWorldbuildingCategoryAnswers),
+    'hasPrologue' : IDL.Bool,
+    'characters' : IDL.Vec(BookSetupCharacterAnswers),
+  });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   
   return IDL.Service({
+    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addCharacter' : IDL.Func(
         [
           IDL.Text,
@@ -118,13 +200,43 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'addWorldbuildingNote' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createProject' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'deleteProject' : IDL.Func([IDL.Text], [], []),
     'getAllProjects' : IDL.Func([], [IDL.Vec(BookProjectView)], ['query']),
+    'getBookSetupAnswers' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(BookSetupAnswers)],
+        ['query'],
+      ),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getProject' : IDL.Func([IDL.Text], [BookProjectView], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'renameProject' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'saveBookSetupAnswers' : IDL.Func([IDL.Text, BookSetupAnswers], [], []),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'savePrologue' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
+    'updateCharacter' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
         [],
         [],
       ),

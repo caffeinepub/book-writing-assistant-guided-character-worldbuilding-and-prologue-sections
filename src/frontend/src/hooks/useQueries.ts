@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { BookProjectView } from '../backend';
+import type { BookProjectView, BookSetupAnswers } from '../backend';
 
 export function useGetAllProjects() {
   const { actor, isFetching } = useActor();
@@ -102,6 +102,82 @@ export function useAddCharacter() {
       await actor.addCharacter(projectId, name, background, motivations, relationships, flaws, voice, storyRole);
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+    },
+  });
+}
+
+export function useUpdateCharacter() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      name,
+      background,
+      motivations,
+      relationships,
+      flaws,
+      voice,
+      storyRole,
+    }: {
+      projectId: string;
+      name: string;
+      background: string;
+      motivations: string;
+      relationships: string;
+      flaws: string;
+      voice: string;
+      storyRole: string;
+    }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      await actor.updateCharacter(projectId, name, background, motivations, relationships, flaws, voice, storyRole);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+    },
+  });
+}
+
+export function useCreateMultipleCharacters() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      characters,
+    }: {
+      projectId: string;
+      characters: Array<{
+        name: string;
+        background: string;
+        motivations: string;
+        relationships: string;
+        flaws: string;
+        voice: string;
+        storyRole: string;
+      }>;
+    }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      for (const character of characters) {
+        await actor.addCharacter(
+          projectId,
+          character.name,
+          character.background,
+          character.motivations,
+          character.relationships,
+          character.flaws,
+          character.voice,
+          character.storyRole
+        );
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
     },
   });
@@ -125,6 +201,7 @@ export function useUpdateWorldbuildingCategory() {
       await actor.updateWorldbuildingCategory(projectId, categoryName, description);
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
     },
   });
@@ -148,6 +225,7 @@ export function useAddWorldbuildingNote() {
       await actor.addWorldbuildingNote(projectId, categoryName, note);
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
     },
   });
@@ -179,7 +257,44 @@ export function useSavePrologue() {
       await actor.savePrologue(projectId, hook, povVoice, stakes, keyReveals, connectionToChapterOne, draft);
     },
     onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
     },
+  });
+}
+
+export function useSaveBookSetupAnswers() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      answers,
+    }: {
+      projectId: string;
+      answers: BookSetupAnswers;
+    }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      await actor.saveBookSetupAnswers(projectId, answers);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['bookSetupAnswers', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+    },
+  });
+}
+
+export function useGetBookSetupAnswers(projectId: string | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<BookSetupAnswers | null>({
+    queryKey: ['bookSetupAnswers', projectId],
+    queryFn: async () => {
+      if (!actor || !projectId) return null;
+      return actor.getBookSetupAnswers(projectId);
+    },
+    enabled: !!actor && !isFetching && !!projectId,
   });
 }

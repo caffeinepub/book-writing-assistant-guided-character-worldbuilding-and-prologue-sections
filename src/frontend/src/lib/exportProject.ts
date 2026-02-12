@@ -11,11 +11,11 @@ export function exportProject(project: BookProjectView) {
   lines.push('---');
   lines.push('');
 
-  // Characters
-  lines.push('## Characters');
+  // Book Boyfriends (Characters)
+  lines.push('## Book Boyfriends & Husbands');
   lines.push('');
   if (project.characters.length === 0) {
-    lines.push('_No characters yet_');
+    lines.push('_No book boyfriends yet_');
     lines.push('');
   } else {
     project.characters.forEach((character) => {
@@ -56,8 +56,8 @@ export function exportProject(project: BookProjectView) {
     });
   }
 
-  // Worldbuilding
-  lines.push('## Worldbuilding');
+  // Their World (Worldbuilding)
+  lines.push('## Their World');
   lines.push('');
   if (project.worldbuilding.length === 0) {
     lines.push('_No worldbuilding notes yet_');
@@ -83,11 +83,11 @@ export function exportProject(project: BookProjectView) {
     });
   }
 
-  // Prologue
-  lines.push('## Prologue');
+  // First Encounter (Prologue)
+  lines.push('## First Encounter');
   lines.push('');
   if (!project.prologue) {
-    lines.push('_No prologue yet_');
+    lines.push('_No first encounter yet_');
     lines.push('');
   } else {
     const p = project.prologue;

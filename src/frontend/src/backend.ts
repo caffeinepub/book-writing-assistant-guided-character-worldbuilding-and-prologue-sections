@@ -101,12 +101,12 @@ export interface WorldbuildingCategoryView {
     description: string;
     freeformNotes: Array<string>;
 }
-export interface CharacterView {
+export interface BookSetupCharacterAnswers {
     flaws: string;
     background: string;
-    storyRole: string;
     voice: string;
     name: string;
+    role: string;
     motivations: string;
     relationships: string;
 }
@@ -117,20 +117,71 @@ export interface BookProjectView {
     characters: Array<CharacterView>;
     prologue?: PrologueView;
 }
+export interface CharacterView {
+    flaws: string;
+    background: string;
+    storyRole: string;
+    voice: string;
+    name: string;
+    motivations: string;
+    relationships: string;
+}
+export interface BookSetupAnswers {
+    worldbuilding: Array<BookSetupWorldbuildingCategoryAnswers>;
+    hasPrologue: boolean;
+    characters: Array<BookSetupCharacterAnswers>;
+}
+export interface UserProfile {
+    name: string;
+}
+export interface BookSetupWorldbuildingCategoryAnswers {
+    categoryName: string;
+    description: string;
+    freeformNotes: Array<string>;
+}
+export enum UserRole {
+    admin = "admin",
+    user = "user",
+    guest = "guest"
+}
 export interface backendInterface {
+    _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addCharacter(projectId: string, name: string, background: string, motivations: string, relationships: string, flaws: string, voice: string, storyRole: string): Promise<void>;
     addWorldbuildingNote(projectId: string, categoryName: string, note: string): Promise<void>;
+    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createProject(id: string, name: string): Promise<void>;
     deleteProject(id: string): Promise<void>;
     getAllProjects(): Promise<Array<BookProjectView>>;
+    getBookSetupAnswers(projectId: string): Promise<BookSetupAnswers | null>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
+    getCallerUserRole(): Promise<UserRole>;
     getProject(id: string): Promise<BookProjectView>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
+    isCallerAdmin(): Promise<boolean>;
     renameProject(id: string, newName: string): Promise<void>;
+    saveBookSetupAnswers(projectId: string, answers: BookSetupAnswers): Promise<void>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     savePrologue(projectId: string, hook: string, povVoice: string, stakes: string, keyReveals: string, connectionToChapterOne: string, draft: string): Promise<void>;
+    updateCharacter(projectId: string, name: string, background: string, motivations: string, relationships: string, flaws: string, voice: string, storyRole: string): Promise<void>;
     updateWorldbuildingCategory(projectId: string, categoryName: string, description: string): Promise<void>;
 }
-import type { BookProjectView as _BookProjectView, CharacterView as _CharacterView, PrologueView as _PrologueView, WorldbuildingCategoryView as _WorldbuildingCategoryView } from "./declarations/backend.did.d.ts";
+import type { BookProjectView as _BookProjectView, BookSetupAnswers as _BookSetupAnswers, CharacterView as _CharacterView, PrologueView as _PrologueView, UserProfile as _UserProfile, UserRole as _UserRole, WorldbuildingCategoryView as _WorldbuildingCategoryView } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor._initializeAccessControlWithSecret(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor._initializeAccessControlWithSecret(arg0);
+            return result;
+        }
+    }
     async addCharacter(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string): Promise<void> {
         if (this.processError) {
             try {
@@ -156,6 +207,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addWorldbuildingNote(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -191,28 +256,98 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllProjects();
-                return from_candid_vec_n1(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllProjects();
-            return from_candid_vec_n1(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getBookSetupAnswers(arg0: string): Promise<BookSetupAnswers | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getBookSetupAnswers(arg0);
+                return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getBookSetupAnswers(arg0);
+            return from_candid_opt_n7(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserProfile();
+                return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserProfile();
+            return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getCallerUserRole(): Promise<UserRole> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserRole();
+                return from_candid_UserRole_n9(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserRole();
+            return from_candid_UserRole_n9(this._uploadFile, this._downloadFile, result);
         }
     }
     async getProject(arg0: string): Promise<BookProjectView> {
         if (this.processError) {
             try {
                 const result = await this.actor.getProject(arg0);
-                return from_candid_BookProjectView_n2(this._uploadFile, this._downloadFile, result);
+                return from_candid_BookProjectView_n4(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getProject(arg0);
-            return from_candid_BookProjectView_n2(this._uploadFile, this._downloadFile, result);
+            return from_candid_BookProjectView_n4(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUserProfile(arg0);
+                return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserProfile(arg0);
+            return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async isCallerAdmin(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isCallerAdmin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isCallerAdmin();
+            return result;
         }
     }
     async renameProject(arg0: string, arg1: string): Promise<void> {
@@ -229,6 +364,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async saveBookSetupAnswers(arg0: string, arg1: BookSetupAnswers): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveBookSetupAnswers(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveBookSetupAnswers(arg0, arg1);
+            return result;
+        }
+    }
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveCallerUserProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
     async savePrologue(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<void> {
         if (this.processError) {
             try {
@@ -240,6 +403,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.savePrologue(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            return result;
+        }
+    }
+    async updateCharacter(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateCharacter(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateCharacter(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             return result;
         }
     }
@@ -258,13 +435,22 @@ export class Backend implements backendInterface {
         }
     }
 }
-function from_candid_BookProjectView_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _BookProjectView): BookProjectView {
-    return from_candid_record_n3(_uploadFile, _downloadFile, value);
+function from_candid_BookProjectView_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _BookProjectView): BookProjectView {
+    return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PrologueView]): PrologueView | null {
+function from_candid_UserRole_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n10(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PrologueView]): PrologueView | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_BookSetupAnswers]): BookSetupAnswers | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: string;
     worldbuilding: Array<_WorldbuildingCategoryView>;
     name: string;
@@ -282,11 +468,38 @@ function from_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint
         worldbuilding: value.worldbuilding,
         name: value.name,
         characters: value.characters,
-        prologue: record_opt_to_undefined(from_candid_opt_n4(_uploadFile, _downloadFile, value.prologue))
+        prologue: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.prologue))
     };
 }
-function from_candid_vec_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_BookProjectView>): Array<BookProjectView> {
-    return value.map((x)=>from_candid_BookProjectView_n2(_uploadFile, _downloadFile, x));
+function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    admin: null;
+} | {
+    user: null;
+} | {
+    guest: null;
+}): UserRole {
+    return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
+}
+function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_BookProjectView>): Array<BookProjectView> {
+    return value.map((x)=>from_candid_BookProjectView_n4(_uploadFile, _downloadFile, x));
+}
+function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+    admin: null;
+} | {
+    user: null;
+} | {
+    guest: null;
+} {
+    return value == UserRole.admin ? {
+        admin: null
+    } : value == UserRole.user ? {
+        user: null
+    } : value == UserRole.guest ? {
+        guest: null
+    } : value;
 }
 export interface CreateActorOptions {
     agent?: Agent;

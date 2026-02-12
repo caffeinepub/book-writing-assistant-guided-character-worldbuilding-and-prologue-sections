@@ -47,9 +47,9 @@ export default function WorldbuildingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Worldbuilding</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Their World</h2>
         <p className="text-muted-foreground mt-1">
-          Craft the setting, rules, and atmosphere of your story's world
+          Craft the setting, rules, and atmosphere where your book boyfriends live
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export default function WorldbuildingPage() {
         <CardHeader>
           <CardTitle>World Elements</CardTitle>
           <CardDescription>
-            Expand each category to add details about your world
+            Expand each category to add details about your book boyfriends' world
           </CardDescription>
         </CardHeader>
         <CardContent>

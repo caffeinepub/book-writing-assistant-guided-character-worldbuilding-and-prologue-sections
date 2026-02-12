@@ -10,7 +10,7 @@ export default function PrologueOutlineView({ prologue }: PrologueOutlineViewPro
   if (!prologue) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p>No prologue content yet. Switch to the Editor tab to start writing.</p>
+        <p>No opening content yet. Switch to the Editor tab to start writing.</p>
       </div>
     );
   }

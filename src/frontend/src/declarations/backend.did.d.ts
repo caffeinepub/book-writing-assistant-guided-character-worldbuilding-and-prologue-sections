@@ -17,6 +17,25 @@ export interface BookProjectView {
   'characters' : Array<CharacterView>,
   'prologue' : [] | [PrologueView],
 }
+export interface BookSetupAnswers {
+  'worldbuilding' : Array<BookSetupWorldbuildingCategoryAnswers>,
+  'hasPrologue' : boolean,
+  'characters' : Array<BookSetupCharacterAnswers>,
+}
+export interface BookSetupCharacterAnswers {
+  'flaws' : string,
+  'background' : string,
+  'voice' : string,
+  'name' : string,
+  'role' : string,
+  'motivations' : string,
+  'relationships' : string,
+}
+export interface BookSetupWorldbuildingCategoryAnswers {
+  'categoryName' : string,
+  'description' : string,
+  'freeformNotes' : Array<string>,
+}
 export interface CharacterView {
   'flaws' : string,
   'background' : string,
@@ -34,23 +53,40 @@ export interface PrologueView {
   'draft' : string,
   'connectionToChapterOne' : string,
 }
+export interface UserProfile { 'name' : string }
+export type UserRole = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
 export interface WorldbuildingCategoryView {
   'description' : string,
   'freeformNotes' : Array<string>,
 }
 export interface _SERVICE {
+  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addCharacter' : ActorMethod<
     [string, string, string, string, string, string, string, string],
     undefined
   >,
   'addWorldbuildingNote' : ActorMethod<[string, string, string], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createProject' : ActorMethod<[string, string], undefined>,
   'deleteProject' : ActorMethod<[string], undefined>,
   'getAllProjects' : ActorMethod<[], Array<BookProjectView>>,
+  'getBookSetupAnswers' : ActorMethod<[string], [] | [BookSetupAnswers]>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getProject' : ActorMethod<[string], BookProjectView>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
   'renameProject' : ActorMethod<[string, string], undefined>,
+  'saveBookSetupAnswers' : ActorMethod<[string, BookSetupAnswers], undefined>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'savePrologue' : ActorMethod<
     [string, string, string, string, string, string, string],
+    undefined
+  >,
+  'updateCharacter' : ActorMethod<
+    [string, string, string, string, string, string, string, string],
     undefined
   >,
   'updateWorldbuildingCategory' : ActorMethod<
