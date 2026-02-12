@@ -1,49 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T20:55:56.079Z",
-  "summary": "Diff adds a new MultiCharacterQuestionnaireDialog with family-role/gender grouping and integrates an entry point on CharactersPage. It also appears to add a React Query helper for creating multiple characters with cache invalidation, and includes a DRAFT_BUILD.md with build/test instructions. Several unrelated changes (book setup questionnaire integration, branding, backend access control/user profiles) are present but not requested.",
+  "generatedAt": "2026-02-12T21:30:44.039Z",
+  "summary": "Diff adds a new reusable family questionnaire question bank, a per-person multiple-choice question flow UI, an answer model, and a deterministic text generator, and wires these into MultiCharacterQuestionnaireDialog along with main-character selection scaffolding and parent selection state. However, the diff summary does not provide clear evidence that the main-character parent requirement and son/daughter enforcement are fully validated and blocked at Finish, nor that generated output explicitly reflects the parent linkage and son/daughter relationship.",
   "missing_requirements": [
     {
       "id": "REQ-4",
-      "requirement": "Produce and deploy a new draft build of the app after implementing the multi-character questionnaire update so the user can test it.",
-      "reason": "The diff includes only a markdown document describing how to build/deploy, but does not provide evidence that a new draft build was actually produced and deployed.",
+      "requirement": "Prevent finishing “Create All Characters” unless the selected Main Character has at least one parent selected from the other created people, show a clear English validation error, and direct the user back to fix the missing selection; generated output must reflect the chosen parent(s) and explicitly indicate son/daughter.",
+      "reason": "MultiCharacterQuestionnaireDialog introduces mainCharacterId, validationError, and parentIds state, but the provided diff excerpt is truncated before any gating/validation logic on finishing, and the text generator excerpt does not show any use of parentIds or embedding parent names / son-daughter wording in relationships/storyRole.",
       "evidence": [
-        "frontend/DRAFT_BUILD.md"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Backend user profile storage and access-control/authorization enforcement added/modified.",
-      "reason": "Not requested by any REQ; BuildRequest focuses on a new multi-character questionnaire and character creation flow.",
-      "evidence": [
-        "backend/main.mo"
+        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+        "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
       ]
     },
     {
-      "description": "Book setup questionnaire integration and project creation flow changes (auto-opening/reopening setup questionnaire).",
-      "reason": "Not requested; explicitly a non-goal to avoid redesigning unrelated sections beyond what’s necessary for the questionnaire entry point.",
+      "id": "REQ-5",
+      "requirement": "When a person is marked as the main character, require choosing either Son or Daughter for that person (or equivalent mapping), and ensure generated output clearly indicates son/daughter and references selected parent(s).",
+      "reason": "Family role options now include Son and Daughter, but the diff excerpt does not show validation that the main character must be assigned son/daughter (e.g., blocking if main character role is not son/daughter), nor does the generator excerpt show explicit son/daughter phrasing tied to selected parents.",
       "evidence": [
-        "frontend-file-summaries.txt (summaries for frontend/src/App.tsx, frontend/src/components/ProjectSwitcher.tsx)"
-      ]
-    },
-    {
-      "description": "App-wide branding/header changes (\"Legendary Lovers Library\" branding, Heart icon, unauthenticated hero illustration).",
-      "reason": "Not requested in BuildRequest; unrelated to the Characters multi-character questionnaire feature.",
-      "evidence": [
-        "frontend-file-summaries.txt (summaries for frontend/src/components/AppHeader.tsx, frontend/src/views/HomeView.tsx, frontend/src/App.tsx)"
+        "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+        "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
       ]
     }
   ],
-  "confidence": 0.72,
+  "hallucinated_features": [],
+  "confidence": 0.62,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/DRAFT_BUILD.md",
+    "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx",
     "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+    "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
+    "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+    "frontend/src/components/characters/familyQuestionnaireTypes.ts",
     "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
-    "frontend/src/sections/CharactersPage.tsx",
     "project_state.json"
   ]
 }

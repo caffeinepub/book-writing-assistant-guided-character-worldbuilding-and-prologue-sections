@@ -1,13 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Add a new multi-character “giant questionnaire” flow that collects multiple related characters in one guided session and generates separate character profiles in the selected project.
+**Goal:** Convert the Family Questionnaire into a guided ~50-question multiple-choice flow per person that produces complete character background text and enforces that the main character is explicitly a son/daughter with at least one selected parent.
 
 **Planned changes:**
-- Add a new multi-character questionnaire accessible from the Characters page alongside existing “New Character” and “Create Band/Group” flows.
-- In the questionnaire, let users define multiple characters grouped by family-tree roles (mother, father, grandparent, child/kid, other) and capture per-character trait/background details in one continuous flow.
-- On submit, create one saved character per defined person in the currently selected project and refresh the Characters list immediately.
-- Block submission when no project is selected and show an English error message.
-- Produce a new draft build including this functionality.
+- Replace the current per-person free-text “details” step in `MultiCharacterQuestionnaireDialog` with a Back/Next multiple-choice questionnaire (~50 questions), optionally grouped into sections with progress indicators.
+- Add support for “Other (custom)” options where appropriate, using short inputs only for that selection.
+- Create a dedicated, reusable Family Questionnaire question bank module with stable question IDs, types, labels, and option values; store answers keyed by question ID per person and persist them while navigating within the wizard.
+- Generate the saved character text fields (background, motivations, relationships, flaws, voice, storyRole) deterministically from the selected answers when finishing (“Create All Characters”).
+- Add explicit main character selection (exactly one), require the main character to be marked as Son or Daughter, and require selecting at least one parent from the other created people; block finishing with a clear validation error if missing.
+- Expand family role choices to include explicit “Son” and “Daughter” and reflect parent/child linkage in the generated output text.
 
-**User-visible outcome:** From the Characters page, users can launch a multi-character questionnaire, fill out several related characters in one session (organized by family roles), submit once, and immediately see multiple new character profiles appear in the Characters list.
+**User-visible outcome:** Users can create a family by answering guided multiple-choice questions for each person; on finishing, characters are created with coherent generated backgrounds, and the wizard prevents completion until the main character is explicitly a son/daughter with at least one selected parent.

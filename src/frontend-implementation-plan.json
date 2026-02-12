@@ -1,76 +1,127 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Multi-character family-tree questionnaire (draft build)",
+  "title": "Family Questionnaire: 50-question multiple-choice flow with deterministic character generation and main-character parent linkage",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Implement a new guided, multi-character questionnaire flow that groups characters by family-tree roles and captures per-character traits in one continuous experience.",
+      "summary": "Replace the per-person free-text details step with a ~50-question multiple-choice flow (with Back/Next, progress, and optional short “Other” inputs).",
       "acceptanceCriteria": [
-        "From the Characters section, the user can open a new multi-character questionnaire designed for building multiple related characters in one flow.",
-        "The flow provides a way to group characters by family-tree roles (at minimum: mother, father, grandparent, child/kid, and an 'other' option) and capture per-character trait/background information without requiring the user to re-answer the same prompts for each character separately.",
-        "All user-facing UI text for this feature is in English."
+        "Opening Characters → Family Questionnaire no longer shows long free-text Textarea sections for background/motivations/relationships/flaws/voice/story role in the per-person details step.",
+        "Each person goes through a multiple-choice question flow (radio/select/checkbox style) with approximately 50 questions available (can be grouped into sections with progress).",
+        "Questions support an “Other (custom)” option where appropriate, using a short input only for that option (not long-form writing).",
+        "Users can navigate Back/Next through the question flow and see which question/section they are on."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "operation": "create",
-          "description": "Create a new multi-character questionnaire dialog that (1) lets the user add multiple people, (2) assigns each person a family-tree role (mother/father/grandparent/child/other) plus a gender marker (male/female/other), and (3) provides a continuous guided flow that supports reusing shared answers (e.g., a 'apply to selected/all' toggle for repeated prompts) while still allowing per-person overrides. Use shadcn-ui primitives (e.g., Dialog, Accordion, Tabs/Select where available) to keep styling consistent. Verify the component's usage instructions before implementing."
+          "operation": "modify",
+          "description": "Replace the current Accordion + long Textarea-based per-person 'details' UI with a guided, question-by-question multiple-choice flow driven by the family questionnaire question bank. Use shadcn-ui form primitives (e.g., RadioGroup/Select/Checkbox/Progress) to render question types and show step/section progress. Include Back/Next navigation per question and section indicators. Implement “Other (custom)” as a short input shown only when the selected option allows custom input. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+          "path": "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx",
           "operation": "create",
-          "description": "Add lightweight frontend-only types/constants for the multi-character questionnaire (family roles list, gender options, and the in-memory draft model used by the dialog) to keep the dialog component readable and ensure all labels are in English."
+          "description": "Create a reusable renderer component for the per-person question flow that supports radio/select/checkbox question types, displays progress and section headers, and exposes callbacks for saving answers per question ID (including optional custom input). This component must be used by MultiCharacterQuestionnaireDialog (no orphan component). Use shadcn-ui building blocks for consistent UI. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "On submit, create one saved character per defined person in the selected project and refresh the Characters list immediately; block submit when no project is selected.",
+      "summary": "Introduce a dedicated, reusable family questionnaire question bank with stable IDs and a typed per-person answer model; render UI from the bank and persist answers while navigating within the wizard.",
       "acceptanceCriteria": [
-        "Submitting the multi-character questionnaire results in multiple distinct characters being created in the selected project.",
-        "After successful creation, the Characters page displays the new characters without a manual refresh (React Query cache invalidation or equivalent).",
-        "If no project is selected, the UI blocks submission and shows an English error message."
+        "Family questionnaire questions are defined in a separate module (not hardcoded inline in the dialog JSX) with stable IDs and typed definitions.",
+        "The UI renders questions from the question bank and stores answers keyed by question ID per person.",
+        "Answers persist while moving between people inside the wizard (no accidental resets when navigating Next/Back within the dialog)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "operation": "modify",
-          "description": "Wire submission to existing React Query mutations by using the existing multi-create behavior (e.g., useCreateMultipleCharacters) and ensure successful completion closes the dialog and triggers immediate Characters list refresh via existing cache invalidation. Add an explicit guard that blocks submission when no project is selected and shows an English error (toast or inline). Map questionnaire role/gender into saved Character fields consistently (e.g., storyRole and/or relationships/background) so each created character remains distinct and recognizable. Use shadcn-ui feedback patterns where applicable (buttons disabled while pending). Verify the component's usage instructions before implementing."
+          "path": "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
+          "operation": "create",
+          "description": "Create the Family Questionnaire question bank module (similar structure to frontend/src/components/bookSetup/bookSetupQuestions.ts) defining ~50 structured questions with stable IDs, section/category grouping, type (radio/select/checkbox), options (including allow-custom-input where appropriate), and display labels. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/characters/familyQuestionnaireTypes.ts",
+          "operation": "create",
+          "description": "Create typed definitions for the family questionnaire answer model (e.g., per-person answers keyed by stable question IDs, checkbox multi-select values, and optional custom inputs) and any helper types needed by the flow renderer and dialog. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
           "operation": "modify",
-          "description": "If needed for correctness/UX, extend the existing multi-create mutation behavior to better support the new questionnaire (e.g., accept the new draft shape via a small adapter, ensure invalidation covers ['projects'] and ['project', projectId], and keep errors surfaced to the UI). Keep all user-facing strings in English."
+          "description": "Extend PersonDraft to include the per-person answers map keyed by question ID (and custom input values where applicable) so answers persist across Back/Next navigation and when switching between people in the wizard. Also extend the draft model to store main-character designation and parent selection needed for validation. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "operation": "modify",
+          "description": "Wire the dialog to load questions from the new family questionnaire question bank module and store answers per person keyed by stable question IDs (no inline hardcoding). Ensure state updates do not reset answers when moving between questions or between people. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Add an entry point on CharactersPage to open the new multi-character questionnaire alongside existing New Character and Create Band/Group flows.",
+      "summary": "Deterministically generate each character’s saved background/motivations/relationships/flaws/voice/storyRole text from multiple-choice selections on Finish.",
       "acceptanceCriteria": [
-        "CharactersPage includes a clear button/entry point to open the new multi-character questionnaire dialog.",
-        "Existing flows (New Character and Create Band/Group) remain available and continue to work as before."
+        "On “Create All Characters”, each created character has non-empty, readable content in the saved Character fields derived from the chosen options.",
+        "The generated text is deterministic and based on the user’s selections (same selections produce the same output).",
+        "The Characters list and CharacterSummary view show the generated character details after creation."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/sections/CharactersPage.tsx",
+          "path": "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+          "operation": "create",
+          "description": "Create a deterministic text generation utility that takes a person's answer model (plus family setup inputs like role and parent selections) and returns coherent, non-empty strings for background, motivations, relationships, flaws, voice, and storyRole. Ensure the output is purely derived from inputs (no randomness) and consistently formats section text for readability. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
           "operation": "modify",
-          "description": "Add a new UI action (button) next to existing 'New Character' and 'Create Band/Group' actions to open the multi-character questionnaire dialog, and add the dialog instance/state wiring so it is reachable (not an orphan component). Ensure button text is English and existing flows remain unchanged. Verify shadcn-ui component usage instructions before implementing."
+          "description": "On “Create All Characters”, replace usage of free-text draft fields with generated strings from familyQuestionnaireTextGenerator for each person, and pass those generated fields into the existing create-multiple mutation so Character records contain complete details without manual writing. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Prepare the frontend project for producing a new draft build containing the multi-character questionnaire update.",
+      "summary": "Capture and enforce main-character parent linkage: exactly one main character, must have at least one parent selected among other people; block finishing and guide the user to fix missing selection; reflect linkage in generated output.",
       "acceptanceCriteria": [
-        "A new draft build is produced that includes the multi-character questionnaire functionality described in this build request."
+        "In the Family Questionnaire setup step, the user can designate exactly one person as the “Main Character”.",
+        "The flow requires selecting at least one parent for the main character from other people in the questionnaire before allowing “Create All Characters”.",
+        "If the user tries to finish without satisfying the rule, the UI shows a clear validation error in English and focuses the user back to the missing selection.",
+        "The generated character output reflects the relationship (e.g., main character relationships/storyRole text includes the chosen parent(s) and explicitly indicates son/daughter)."
       ],
       "file_operations": [
         {
-          "path": "frontend/DRAFT_BUILD.md",
-          "operation": "create",
-          "description": "Document the steps to produce a new draft build for testing (how to run the frontend build, how to verify the multi-character questionnaire appears in Characters, and a short checklist confirming English UI text and that created characters appear immediately after submit). Keep instructions focused on this feature and do not reference or include any sensitive content."
+          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "operation": "modify",
+          "description": "Update the setup step UI to allow selecting exactly one person as Main Character and selecting at least one parent for that main character from the other created people. Add finish-time validation that blocks “Create All Characters” unless the constraint is satisfied; show a clear English validation message and programmatically navigate the user back to the setup step and focus/scroll to the missing selection control. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+          "operation": "modify",
+          "description": "Incorporate main-character parent linkage into deterministic generated text (relationships and/or storyRole) so it explicitly states the main character is the selected son/daughter of the chosen parent(s) by name. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add explicit Son/Daughter family roles and require the main character’s role to be Son or Daughter for validation and generated output.",
+      "acceptanceCriteria": [
+        "Family role options include explicit “Son” and “Daughter” choices (in addition to existing roles like mother/father/grandparent/other).",
+        "When a person is marked as the main character, the UI requires choosing either Son or Daughter for that person (or an equivalent explicit child role that maps to son/daughter in output).",
+        "The created character’s storyRole (or relationships) text clearly indicates son/daughter and references the selected parent(s)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+          "operation": "modify",
+          "description": "Expand FAMILY_ROLES to include explicit 'son' and 'daughter' options and update FamilyRole typing accordingly, keeping existing roles intact. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "operation": "modify",
+          "description": "Update setup-step validation so that if a person is selected as Main Character, their family role must be Son or Daughter (and disallow finishing until satisfied). Ensure the UI clearly prompts the user to choose Son/Daughter for the main character and that the selection is used for the parent-link validation and subsequent generation. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+          "operation": "modify",
+          "description": "Ensure generated storyRole/relationships text uses explicit “son”/“daughter” phrasing (derived from the selected role) and references the chosen parent(s) to satisfy output requirements. Verify the component's usage instructions before implementing."
         }
       ]
     }

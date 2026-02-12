@@ -1,8 +1,12 @@
 // Types and constants for the multi-character family-tree questionnaire
 
+import type { FamilyQuestionnairePersonAnswers } from './familyQuestionnaireTypes';
+
 export const FAMILY_ROLES = [
   { value: 'mother', label: 'Mother' },
   { value: 'father', label: 'Father' },
+  { value: 'son', label: 'Son' },
+  { value: 'daughter', label: 'Daughter' },
   { value: 'grandparent', label: 'Grandparent' },
   { value: 'child', label: 'Child/Kid' },
   { value: 'other', label: 'Other' },
@@ -28,6 +32,8 @@ export interface PersonDraft {
   flaws: string;
   voice: string;
   storyRole: string;
+  // New fields for questionnaire
+  questionnaireAnswers?: FamilyQuestionnairePersonAnswers;
 }
 
 export interface QuestionnaireState {

@@ -1,74 +1,99 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T20:55:56.082Z",
+  "generatedAt": "2026-02-12T21:30:44.043Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a new multi-character questionnaire flow that lets the user define and fill out multiple character profiles in one continuous guided questionnaire, with an emphasis on family-tree style grouping (e.g., mothers, fathers, grandparents, kids; plus male/female/other distinctions) so the user can complete all characters at once instead of repeating the same questions per character.",
+        "summary": "Replace the current free-text “details” step in the Family Questionnaire (MultiCharacterQuestionnaireDialog) with a guided, multiple-choice questionnaire of ~50 questions per person, so users do not need to write long answers manually.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts"
+          "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts"
+          "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "When the multi-character questionnaire is submitted, automatically create separate character profiles in the currently selected project (one saved character per person defined in the questionnaire), and refresh the Characters list to show the newly created characters immediately.",
+        "summary": "Create a dedicated, reusable question bank and answer model for the Family Questionnaire (similar in structure to frontend/src/components/bookSetup/bookSetupQuestions.ts), including stable question IDs, labels, option values, and question types, and use it to render the multiple-choice flow.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
+          "frontend/src/components/characters/familyQuestionnaireTypes.ts",
+          "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
+          "frontend/src/components/characters/familyQuestionnaireTypes.ts",
+          "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
           "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Integrate the new multi-character questionnaire entry point into the existing Characters page UI alongside the current single-character creation and the existing “Create Band/Group” wizard, so users can choose the appropriate creation mode.",
+        "summary": "Generate each character’s final saved text fields (background, motivations, relationships, flaws, voice, storyRole) from the selected multiple-choice answers, so that on Finish the created Character records contain a coherent “whole background” without requiring users to write it manually.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/sections/CharactersPage.tsx"
+          "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/sections/CharactersPage.tsx"
+          "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Produce and deploy a new draft build of the app after implementing the multi-character questionnaire update so the user can test it.",
+        "summary": "Update the Family Questionnaire to explicitly capture and enforce the main character’s family relationship such that the main character must be someone’s son/daughter (i.e., has at least one parent selected among the created people), and prevent finishing the wizard until this condition is satisfied.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/DRAFT_BUILD.md"
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
         ],
         "matchedFiles": [
-          "frontend/DRAFT_BUILD.md"
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Expand available family role choices so the questionnaire can represent son/daughter explicitly (not only a generic “Child/Kid”), and ensure the main character’s role is captured as son or daughter (based on user selection) for both validation and generated output.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+          "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/DRAFT_BUILD.md",
+    "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx",
     "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+    "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
+    "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
+    "frontend/src/components/characters/familyQuestionnaireTypes.ts",
     "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
-    "frontend/src/sections/CharactersPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

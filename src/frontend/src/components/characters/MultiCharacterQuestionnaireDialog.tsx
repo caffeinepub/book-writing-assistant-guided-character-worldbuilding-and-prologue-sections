@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useProjects } from '../../state/useProjects';
 import { useCreateMultipleCharacters } from '../../hooks/useQueries';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Users } from 'lucide-react';
+import { Plus, Trash2, Users, AlertCircle } from 'lucide-react';
 import { FAMILY_ROLES, GENDER_OPTIONS, type PersonDraft, type FamilyRole, type Gender } from './multiCharacterQuestionnaireTypes';
+import type { FamilyQuestionnairePersonAnswers } from './familyQuestionnaireTypes';
+import FamilyQuestionnaireQuestionFlow from './FamilyQuestionnaireQuestionFlow';
+import { generateCharacterText } from './familyQuestionnaireTextGenerator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface MultiCharacterQuestionnaireDialogProps {
   open: boolean;
@@ -24,11 +27,15 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
   const [step, setStep] = useState<'setup' | 'details'>('setup');
   const [people, setPeople] = useState<PersonDraft[]>([]);
   const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
+  const [mainCharacterId, setMainCharacterId] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const resetWizard = () => {
     setStep('setup');
     setPeople([]);
     setCurrentPersonIndex(0);
+    setMainCharacterId(null);
+    setValidationError(null);
   };
 
   const handleClose = () => {
@@ -48,6 +55,11 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
       flaws: '',
       voice: '',
       storyRole: '',
+      questionnaireAnswers: {
+        answers: {},
+        isMainCharacter: false,
+        parentIds: [],
+      },
     };
     setPeople([...people, newPerson]);
   };
@@ -57,6 +69,10 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
       toast.error('You must have at least one person');
       return;
     }
+    // If removing the main character, clear main character selection
+    if (id === mainCharacterId) {
+      setMainCharacterId(null);
+    }
     setPeople(people.filter((p) => p.id !== id));
   };
 
@@ -64,17 +80,53 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
     setPeople(people.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
   };
 
-  const handleStartDetails = () => {
+  const handleMainCharacterChange = (personId: string) => {
+    setMainCharacterId(personId);
+    setValidationError(null);
+    // Update questionnaireAnswers for all people
+    setPeople(people.map((p) => ({
+      ...p,
+      questionnaireAnswers: {
+        ...p.questionnaireAnswers!,
+        isMainCharacter: p.id === personId,
+      },
+    })));
+  };
+
+  const handleParentSelectionChange = (parentId: string, checked: boolean) => {
+    if (!mainCharacterId) return;
+    
+    setPeople(people.map((p) => {
+      if (p.id === mainCharacterId) {
+        const currentParents = p.questionnaireAnswers?.parentIds || [];
+        const newParents = checked
+          ? [...currentParents, parentId]
+          : currentParents.filter((id) => id !== parentId);
+        return {
+          ...p,
+          questionnaireAnswers: {
+            ...p.questionnaireAnswers!,
+            parentIds: newParents,
+          },
+        };
+      }
+      return p;
+    }));
+    setValidationError(null);
+  };
+
+  const validateSetup = (): boolean => {
+    // Check if at least one person exists
     if (people.length === 0) {
-      toast.error('Please add at least one person');
-      return;
+      setValidationError('Please add at least one person');
+      return false;
     }
 
-    // Validate all people have names and roles
+    // Validate all people have names
     for (const person of people) {
       if (!person.name.trim()) {
-        toast.error('All people must have a name');
-        return;
+        setValidationError('All people must have a name');
+        return false;
       }
     }
 
@@ -82,8 +134,8 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
     const names = people.map((p) => p.name.toLowerCase());
     const uniqueNames = new Set(names);
     if (names.length !== uniqueNames.size) {
-      toast.error('All names must be unique');
-      return;
+      setValidationError('All names must be unique');
+      return false;
     }
 
     // Check against existing characters
@@ -93,33 +145,74 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
     for (const name of names) {
       if (projectCharacterNames.has(name)) {
         const person = people.find((p) => p.name.toLowerCase() === name);
-        toast.error(`A character named "${person?.name}" already exists in your project`);
-        return;
+        setValidationError(`A character named "${person?.name}" already exists in your project`);
+        return false;
       }
+    }
+
+    // Check if main character is selected
+    if (!mainCharacterId) {
+      setValidationError('Please select exactly one person as the Main Character');
+      return false;
+    }
+
+    // Check if main character has Son or Daughter role
+    const mainCharacter = people.find((p) => p.id === mainCharacterId);
+    if (mainCharacter && mainCharacter.familyRole !== 'son' && mainCharacter.familyRole !== 'daughter') {
+      setValidationError('The Main Character must have the family role of Son or Daughter');
+      return false;
+    }
+
+    // Check if main character has at least one parent selected
+    const mainCharacterParents = mainCharacter?.questionnaireAnswers?.parentIds || [];
+    if (mainCharacterParents.length === 0) {
+      setValidationError('Please select at least one parent for the Main Character');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleStartDetails = () => {
+    if (!validateSetup()) {
+      return;
     }
 
     setStep('details');
     setCurrentPersonIndex(0);
   };
 
-  const handleNext = () => {
+  const handleAnswerChange = (questionId: string, value: string | string[], customInput?: string) => {
+    const currentPerson = people[currentPersonIndex];
+    if (!currentPerson) return;
+
+    setPeople(people.map((p) => {
+      if (p.id === currentPerson.id) {
+        return {
+          ...p,
+          questionnaireAnswers: {
+            ...p.questionnaireAnswers!,
+            answers: {
+              ...p.questionnaireAnswers!.answers,
+              [questionId]: {
+                value,
+                customInput,
+              },
+            },
+          },
+        };
+      }
+      return p;
+    }));
+  };
+
+  const handleBackFromQuestions = () => {
+    setStep('setup');
+  };
+
+  const handleNextPerson = () => {
     if (currentPersonIndex < people.length - 1) {
       setCurrentPersonIndex(currentPersonIndex + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentPersonIndex > 0) {
-      setCurrentPersonIndex(currentPersonIndex - 1);
-    } else {
-      setStep('setup');
-    }
-  };
-
-  const updateCurrentPerson = (field: keyof PersonDraft, value: string) => {
-    const currentPerson = people[currentPersonIndex];
-    if (currentPerson) {
-      updatePerson(currentPerson.id, field, value);
     }
   };
 
@@ -130,15 +223,18 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
     }
 
     try {
-      const characters = people.map((person) => ({
-        name: person.name,
-        background: person.background,
-        motivations: person.motivations,
-        relationships: person.relationships,
-        flaws: person.flaws,
-        voice: person.voice,
-        storyRole: `${person.familyRole} - ${person.gender}${person.storyRole ? ` - ${person.storyRole}` : ''}`,
-      }));
+      const characters = people.map((person) => {
+        const generated = generateCharacterText(person, person.questionnaireAnswers!, people);
+        return {
+          name: person.name,
+          background: generated.background,
+          motivations: generated.motivations,
+          relationships: generated.relationships,
+          flaws: generated.flaws,
+          voice: generated.voice,
+          storyRole: generated.storyRole,
+        };
+      });
 
       await createMultiple.mutateAsync({
         projectId: selectedProjectId,
@@ -155,6 +251,8 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
 
   const currentPerson = people[currentPersonIndex];
   const isLastPerson = currentPersonIndex === people.length - 1;
+  const mainCharacter = people.find((p) => p.id === mainCharacterId);
+  const potentialParents = people.filter((p) => p.id !== mainCharacterId);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -164,10 +262,17 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
             <DialogHeader>
               <DialogTitle>Multi-Character Family Questionnaire</DialogTitle>
               <DialogDescription>
-                Add all your characters at once and organize them by family roles
+                Add all your characters and designate the main character with their parent(s)
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6 py-4">
+              {validationError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{validationError}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-4">
                 {people.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -245,12 +350,62 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
                 Add Person
               </Button>
 
+              {people.length > 0 && (
+                <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">Main Character *</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Select exactly one person as the main character (must be Son or Daughter)
+                    </p>
+                    <RadioGroup value={mainCharacterId || ''} onValueChange={handleMainCharacterChange}>
+                      <div className="space-y-2">
+                        {people.map((person) => (
+                          <div key={person.id} className="flex items-center space-x-3">
+                            <RadioGroupItem value={person.id} id={`main-${person.id}`} />
+                            <Label htmlFor={`main-${person.id}`} className="cursor-pointer font-normal">
+                              {person.name || `Person ${people.indexOf(person) + 1}`} ({FAMILY_ROLES.find((r) => r.value === person.familyRole)?.label})
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {mainCharacterId && mainCharacter && potentialParents.length > 0 && (
+                    <div className="space-y-3 pt-4 border-t">
+                      <Label className="text-base font-semibold">
+                        Parent(s) of {mainCharacter.name} *
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Select at least one parent for the main character
+                      </p>
+                      <div className="space-y-2">
+                        {potentialParents.map((person) => (
+                          <div key={person.id} className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              id={`parent-${person.id}`}
+                              checked={mainCharacter.questionnaireAnswers?.parentIds?.includes(person.id) || false}
+                              onChange={(e) => handleParentSelectionChange(person.id, e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-300"
+                            />
+                            <Label htmlFor={`parent-${person.id}`} className="cursor-pointer font-normal">
+                              {person.name || `Person ${people.indexOf(person) + 1}`} ({FAMILY_ROLES.find((r) => r.value === person.familyRole)?.label})
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
                 <Button onClick={handleStartDetails} disabled={people.length === 0}>
-                  Continue to Details
+                  Continue to Questions
                 </Button>
               </div>
             </div>
@@ -265,147 +420,21 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
                 {currentPerson?.familyRole && currentPerson?.gender && (
                   <span className="capitalize">
                     {FAMILY_ROLES.find((r) => r.value === currentPerson.familyRole)?.label} • {GENDER_OPTIONS.find((g) => g.value === currentPerson.gender)?.label}
+                    {currentPerson.questionnaireAnswers?.isMainCharacter && ' • Main Character'}
                   </span>
                 )}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6">
-              <Accordion type="multiple" className="w-full" defaultValue={['identity']}>
-                <AccordionItem value="identity">
-                  <AccordionTrigger>Identity & Background</AccordionTrigger>
-                  <AccordionContent className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person-background">
-                        Who is this character? What's their history, occupation, and defining traits?
-                      </Label>
-                      <Textarea
-                        id="person-background"
-                        placeholder="Describe their background, identity, age, occupation, and key personality traits..."
-                        value={currentPerson?.background || ''}
-                        onChange={(e) => updateCurrentPerson('background', e.target.value)}
-                        rows={6}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="motivations">
-                  <AccordionTrigger>Motivations & Goals</AccordionTrigger>
-                  <AccordionContent className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person-motivations">
-                        What does this character want? What drives them?
-                      </Label>
-                      <Textarea
-                        id="person-motivations"
-                        placeholder="Describe their desires, ambitions, fears, and what motivates their actions..."
-                        value={currentPerson?.motivations || ''}
-                        onChange={(e) => updateCurrentPerson('motivations', e.target.value)}
-                        rows={6}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="relationships">
-                  <AccordionTrigger>Relationships</AccordionTrigger>
-                  <AccordionContent className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person-relationships">
-                        Who are the important people in their life? How do they relate to others?
-                      </Label>
-                      <Textarea
-                        id="person-relationships"
-                        placeholder="Describe their family, friends, enemies, romantic interests, and key relationships..."
-                        value={currentPerson?.relationships || ''}
-                        onChange={(e) => updateCurrentPerson('relationships', e.target.value)}
-                        rows={6}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="flaws">
-                  <AccordionTrigger>Conflicts & Flaws</AccordionTrigger>
-                  <AccordionContent className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person-flaws">
-                        What are their weaknesses, internal conflicts, and obstacles?
-                      </Label>
-                      <Textarea
-                        id="person-flaws"
-                        placeholder="Describe their flaws, fears, internal struggles, and external conflicts..."
-                        value={currentPerson?.flaws || ''}
-                        onChange={(e) => updateCurrentPerson('flaws', e.target.value)}
-                        rows={6}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="voice">
-                  <AccordionTrigger>Voice & Dialogue</AccordionTrigger>
-                  <AccordionContent className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person-voice">
-                        How do they speak? What's their communication style?
-                      </Label>
-                      <Textarea
-                        id="person-voice"
-                        placeholder="Describe their speech patterns, vocabulary, tone, and how they express themselves..."
-                        value={currentPerson?.voice || ''}
-                        onChange={(e) => updateCurrentPerson('voice', e.target.value)}
-                        rows={6}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="arc">
-                  <AccordionTrigger>Story Role & Arc</AccordionTrigger>
-                  <AccordionContent className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="person-storyRole">
-                        What role do they play in the story? How will they change?
-                      </Label>
-                      <Textarea
-                        id="person-storyRole"
-                        placeholder="Describe their function in the plot, their character arc, and how they'll develop..."
-                        value={currentPerson?.storyRole || ''}
-                        onChange={(e) => updateCurrentPerson('storyRole', e.target.value)}
-                        rows={6}
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              <div className="flex justify-between pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handleBack}
-                  className="gap-2"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
-                </Button>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleClose}>
-                    Cancel
-                  </Button>
-                  {isLastPerson ? (
-                    <Button onClick={handleFinish} disabled={createMultiple.isPending}>
-                      {createMultiple.isPending ? 'Creating...' : 'Create All Characters'}
-                    </Button>
-                  ) : (
-                    <Button onClick={handleNext} className="gap-2">
-                      Next
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <FamilyQuestionnaireQuestionFlow
+              personName={currentPerson?.name || `Person ${currentPersonIndex + 1}`}
+              answers={currentPerson?.questionnaireAnswers?.answers || {}}
+              onAnswerChange={handleAnswerChange}
+              onBack={handleBackFromQuestions}
+              onNext={handleNextPerson}
+              onFinish={handleFinish}
+              isLastPerson={isLastPerson}
+              isCreating={createMultiple.isPending}
+            />
           </>
         )}
       </DialogContent>

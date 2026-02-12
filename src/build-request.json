@@ -1,89 +1,110 @@
 {
   "kind": "build_request",
-  "title": "Create a multi-character “giant questionnaire” that generates character profiles (new draft build)",
+  "title": "Revise Family Questionnaire into 50-question multiple-choice flow that builds full character backgrounds and enforces parent/child linkage",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a new multi-character questionnaire flow that lets the user define and fill out multiple character profiles in one continuous guided questionnaire, with an emphasis on family-tree style grouping (e.g., mothers, fathers, grandparents, kids; plus male/female/other distinctions) so the user can complete all characters at once instead of repeating the same questions per character.",
+      "text": "Replace the current free-text “details” step in the Family Questionnaire (MultiCharacterQuestionnaireDialog) with a guided, multiple-choice questionnaire of ~50 questions per person, so users do not need to write long answers manually.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6",
-          "msg-8"
+          "msg-1"
         ],
         "quotes": [
-          "The update will consist of a way to when it's asking you questions about your character you can do all your characters at once but break it down into specific traits with different ones male female kids mothers father's grandparents kind of like that family tree background kind of but I want it to be able to create the character profiles out of that questionnaire..."
+          "I want to fix the family questionnaire so you don't have to write stuff down but it's like a multiple choice 50 questions"
         ]
       },
       "acceptanceCriteria": [
-        "From the Characters section, the user can open a new multi-character questionnaire designed for building multiple related characters in one flow.",
-        "The flow provides a way to group characters by family-tree roles (at minimum: mother, father, grandparent, child/kid, and an 'other' option) and capture per-character trait/background information without requiring the user to re-answer the same prompts for each character separately.",
-        "All user-facing UI text for this feature is in English."
+        "Opening Characters → Family Questionnaire no longer shows long free-text Textarea sections for background/motivations/relationships/flaws/voice/story role in the per-person details step.",
+        "Each person goes through a multiple-choice question flow (radio/select/checkbox style) with approximately 50 questions available (can be grouped into sections with progress).",
+        "Questions support an “Other (custom)” option where appropriate, using a short input only for that option (not long-form writing).",
+        "Users can navigate Back/Next through the question flow and see which question/section they are on."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "When the multi-character questionnaire is submitted, automatically create separate character profiles in the currently selected project (one saved character per person defined in the questionnaire), and refresh the Characters list to show the newly created characters immediately.",
-      "target": "both",
+      "text": "Create a dedicated, reusable question bank and answer model for the Family Questionnaire (similar in structure to frontend/src/components/bookSetup/bookSetupQuestions.ts), including stable question IDs, labels, option values, and question types, and use it to render the multiple-choice flow.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6",
-          "msg-8"
+          "msg-1"
         ],
         "quotes": [
-          "...I want it to be able to create the character profiles out of that questionnaire so you don't have to go back and redo the question in every single character..."
+          "multiple choice 50 questions for each question that's answered"
         ]
       },
       "acceptanceCriteria": [
-        "Submitting the multi-character questionnaire results in multiple distinct characters being created in the selected project.",
-        "After successful creation, the Characters page displays the new characters without a manual refresh (React Query cache invalidation or equivalent).",
-        "If no project is selected, the UI blocks submission and shows an English error message."
+        "Family questionnaire questions are defined in a separate module (not hardcoded inline in the dialog JSX) with stable IDs and typed definitions.",
+        "The UI renders questions from the question bank and stores answers keyed by question ID per person.",
+        "Answers persist while moving between people inside the wizard (no accidental resets when navigating Next/Back within the dialog)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Integrate the new multi-character questionnaire entry point into the existing Characters page UI alongside the current single-character creation and the existing “Create Band/Group” wizard, so users can choose the appropriate creation mode.",
+      "text": "Generate each character’s final saved text fields (background, motivations, relationships, flaws, voice, storyRole) from the selected multiple-choice answers, so that on Finish the created Character records contain a coherent “whole background” without requiring users to write it manually.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "...do all your characters at once..."
+          "and by the and you have the characters whole background"
         ]
       },
       "acceptanceCriteria": [
-        "CharactersPage includes a clear button/entry point to open the new multi-character questionnaire dialog.",
-        "Existing flows (New Character and Create Band/Group) remain available and continue to work as before."
+        "On “Create All Characters”, each created character has non-empty, readable content in the saved Character fields derived from the chosen options.",
+        "The generated text is deterministic and based on the user’s selections (same selections produce the same output).",
+        "The Characters list and CharacterSummary view show the generated character details after creation."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Produce and deploy a new draft build of the app after implementing the multi-character questionnaire update so the user can test it.",
-      "target": "unknown",
+      "text": "Update the Family Questionnaire to explicitly capture and enforce the main character’s family relationship such that the main character must be someone’s son/daughter (i.e., has at least one parent selected among the created people), and prevent finishing the wizard until this condition is satisfied.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-12"
+          "msg-1"
         ],
         "quotes": [
-          "Send me a new draft"
+          "you got to remember the main character has to be the son and daughter of somebody"
         ]
       },
       "acceptanceCriteria": [
-        "A new draft build is produced that includes the multi-character questionnaire functionality described in this build request."
+        "In the Family Questionnaire setup step, the user can designate exactly one person as the “Main Character”.",
+        "The flow requires selecting at least one parent for the main character from other people in the questionnaire before allowing “Create All Characters”.",
+        "If the user tries to finish without satisfying the rule, the UI shows a clear validation error in English and focuses the user back to the missing selection.",
+        "The generated character output reflects the relationship (e.g., main character relationships/storyRole text includes the chosen parent(s) and explicitly indicates son/daughter)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Expand available family role choices so the questionnaire can represent son/daughter explicitly (not only a generic “Child/Kid”), and ensure the main character’s role is captured as son or daughter (based on user selection) for both validation and generated output.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "so that includes daughter son"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Family role options include explicit “Son” and “Daughter” choices (in addition to existing roles like mother/father/grandparent/other).",
+        "When a person is marked as the main character, the UI requires choosing either Son or Daughter for that person (or an equivalent explicit child role that maps to son/daughter in output).",
+        "The created character’s storyRole (or relationships) text clearly indicates son/daughter and references the selected parent(s)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
-    "Do not modify files under frontend/src/components/ui or any paths listed as immutable: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Use English for any user-facing text."
+    "Do not edit files under frontend/src/components/ui (shadcn components are read-only).",
+    "Do not edit the immutable auth/actor hooks (frontend/src/hooks/useInternetIdentity.ts, useActor.ts, frontend/src/main.tsx).",
+    "Keep backend as a single Motoko actor in backend/main.mo; only introduce backend changes if strictly necessary for the questionnaire update."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers (only Internet Identity is supported).",
-    "Do not add real-time collaboration/chat features.",
-    "Do not redesign unrelated sections (Projects, Worldbuilding, Prologue) beyond what is necessary to add the new questionnaire entry point."
+    "Implementing a true graph/relational family tree data model in the backend (store relationships as generated text in existing character fields for now).",
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Adding real-time collaboration or chat."
   ],
   "imageRequirements": {
     "required": [],
