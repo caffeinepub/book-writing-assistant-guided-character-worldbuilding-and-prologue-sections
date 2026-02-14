@@ -6,11 +6,13 @@ import Array "mo:core/Array";
 import Order "mo:core/Order";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
+import Migration "migration";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-
-
+// Apply migration function on upgrade
+(with migration = Migration.run)
 actor {
   // Initialize access control
   let accessControlState = AccessControl.initState();
@@ -43,7 +45,7 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  type Character = {
+  public type Character = {
     name : Text;
     background : Text;
     motivations : Text;
@@ -53,12 +55,12 @@ actor {
     storyRole : Text;
   };
 
-  type WorldbuildingCategory = {
+  public type WorldbuildingCategory = {
     description : Text;
     freeformNotes : List.List<Text>;
   };
 
-  type Prologue = {
+  public type Prologue = {
     hook : Text;
     povVoice : Text;
     stakes : Text;
@@ -67,22 +69,23 @@ actor {
     draft : Text;
   };
 
-  type BookProject = {
+  public type BookProject = {
     id : Text;
     name : Text;
     owner : Principal;
     characters : Map.Map<Text, Character>;
     worldbuilding : Map.Map<Text, WorldbuildingCategory>;
     prologue : ?Prologue;
+    characterAnswers : Map.Map<Text, CharacterQuestionnaireAnswers>;
   };
 
-  type BookSetupAnswers = {
+  public type BookSetupAnswers = {
     characters : [BookSetupCharacterAnswers];
     worldbuilding : [BookSetupWorldbuildingCategoryAnswers];
     hasPrologue : Bool;
   };
 
-  type BookSetupCharacterAnswers = {
+  public type BookSetupCharacterAnswers = {
     name : Text;
     background : Text;
     motivations : Text;
@@ -92,16 +95,31 @@ actor {
     role : Text;
   };
 
-  type BookSetupWorldbuildingCategoryAnswers = {
+  public type BookSetupWorldbuildingCategoryAnswers = {
     categoryName : Text;
     description : Text;
     freeformNotes : [Text];
   };
 
-  let projects = Map.empty<Text, BookProject>();
-  let bookSetupAnswers = Map.empty<Text, BookSetupAnswers>();
+  public type CharacterQuestionnaireWorkflow = {
+    motivations : Text;
+    relationships : Text;
+    flaws : Text;
+    voice : Text;
+    storyRole : Text;
+  };
 
-  type CharacterView = {
+  public type CharacterQuestionnaireAnswers = {
+    hasCompletedBackground : Bool;
+    hasCompletedOtherSections : Bool;
+    motivations : Text;
+    relationships : Text;
+    flaws : Text;
+    voice : Text;
+    storyRole : Text;
+  };
+
+  public type CharacterView = {
     name : Text;
     background : Text;
     motivations : Text;
@@ -111,12 +129,12 @@ actor {
     storyRole : Text;
   };
 
-  type WorldbuildingCategoryView = {
+  public type WorldbuildingCategoryView = {
     description : Text;
     freeformNotes : [Text];
   };
 
-  type PrologueView = {
+  public type PrologueView = {
     hook : Text;
     povVoice : Text;
     stakes : Text;
@@ -125,7 +143,7 @@ actor {
     draft : Text;
   };
 
-  type BookProjectView = {
+  public type BookProjectView = {
     id : Text;
     name : Text;
     characters : [CharacterView];
@@ -199,6 +217,7 @@ actor {
       characters = Map.empty<Text, Character>();
       worldbuilding = Map.empty<Text, WorldbuildingCategory>();
       prologue = null;
+      characterAnswers = Map.empty<Text, CharacterQuestionnaireAnswers>();
     };
     projects.add(id, newProject);
   };
@@ -252,6 +271,18 @@ actor {
     };
   };
 
+  public query ({ caller }) func getAllProjects() : async [BookProjectView] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view projects");
+    };
+    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+    projects.values().toArray()
+      .filter(func(p : BookProject) : Bool {
+        isAdmin or p.owner == caller
+      })
+      .map(func(p) { toBookProjectView(p) });
+  };
+
   public shared ({ caller }) func addCharacter(projectId : Text, name : Text, background : Text, motivations : Text, relationships : Text, flaws : Text, voice : Text, storyRole : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add characters");
@@ -273,6 +304,38 @@ actor {
       storyRole;
     };
     project.characters.add(name, newCharacter);
+    projects.add(projectId, project);
+  };
+
+  // New batch API for creating multiple characters.
+  public type CharacterInput = {
+    name : Text;
+    background : Text;
+    motivations : Text;
+    relationships : Text;
+    flaws : Text;
+    voice : Text;
+    storyRole : Text;
+  };
+
+  public shared ({ caller }) func batchCreateCharacters(projectId : Text, characters : [CharacterInput]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add characters");
+    };
+
+    let project = switch (projects.get(projectId)) {
+      case (null) { Runtime.trap("Project not found!") };
+      case (?p) { p };
+    };
+
+    if (not canModifyProject(caller, project)) {
+      Runtime.trap("Unauthorized: You can only add characters to your own projects");
+    };
+
+    for (c in characters.values()) {
+      let newCharacter : Character = c;
+      project.characters.add(c.name, newCharacter);
+    };
     projects.add(projectId, project);
   };
 
@@ -373,18 +436,6 @@ actor {
     projects.add(projectId, updatedProject);
   };
 
-  public query ({ caller }) func getAllProjects() : async [BookProjectView] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view projects");
-    };
-    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
-    projects.values().toArray()
-      .filter(func(p : BookProject) : Bool {
-        isAdmin or p.owner == caller
-      })
-      .map(func(p) { toBookProjectView(p) });
-  };
-
   public shared ({ caller }) func saveBookSetupAnswers(projectId : Text, answers : BookSetupAnswers) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save book setup answers");
@@ -396,9 +447,6 @@ actor {
     if (not canModifyProject(caller, project)) {
       Runtime.trap("Unauthorized: You can only save setup answers for your own projects");
     };
-
-    // Save the answers before updating project state
-    bookSetupAnswers.add(projectId, answers);
 
     // Create characters from answers and add them to the project
     for (characterAnswer in answers.characters.values()) {
@@ -421,17 +469,146 @@ actor {
     projects.add(projectId, project);
   };
 
-  public query ({ caller }) func getBookSetupAnswers(projectId : Text) : async ?BookSetupAnswers {
+  // New function to save or update character questionnaire answers
+  public shared ({ caller }) func saveCharacterQuestionnaireAnswers(projectId : Text, characterName : Text, answers : CharacterQuestionnaireAnswers) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view book setup answers");
+      Runtime.trap("Unauthorized: Only users can save character questionnaire answers");
     };
     let project = switch (projects.get(projectId)) {
       case (null) { Runtime.trap("Project not found!") };
       case (?p) { p };
     };
-    if (not canAccessProject(caller, project)) {
-      Runtime.trap("Unauthorized: You can only view setup answers for your own projects");
+    if (not canModifyProject(caller, project)) {
+      Runtime.trap("Unauthorized: You can only save questionnaire answers for your own projects");
     };
-    bookSetupAnswers.get(projectId);
+
+    project.characterAnswers.add(characterName, answers);
+
+    // Check if all questionnaires for this character are completed
+    let backgroundCompleted = answers.hasCompletedBackground;
+    let otherSectionsCompleted = answers.hasCompletedOtherSections;
+
+    if (backgroundCompleted and otherSectionsCompleted) {
+      let newCharacter : Character = {
+        name = characterName;
+        background = "Background"; // Provide background value here
+        motivations = answers.motivations;
+        relationships = answers.relationships;
+        flaws = answers.flaws;
+        voice = answers.voice;
+        storyRole = answers.storyRole;
+      };
+      project.characters.add(characterName, newCharacter);
+    };
+
+    projects.add(projectId, project);
   };
+
+  public shared ({ caller }) func markBackgroundQuestionnaireComplete(projectId : Text, characterName : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can mark background complete");
+    };
+    let project = switch (projects.get(projectId)) {
+      case (null) { Runtime.trap("Project not found!") };
+      case (?p) { p };
+    };
+    if (not canModifyProject(caller, project)) {
+      Runtime.trap("Unauthorized: You can only mark background complete for your own projects");
+    };
+
+    // Retrieve existing answers or initialize new ones with default values
+    let existingAnswers = switch (project.characterAnswers.get(characterName)) {
+      case (null) {
+        {
+          hasCompletedBackground = false;
+          hasCompletedOtherSections = false;
+          motivations = "";
+          relationships = "";
+          flaws = "";
+          voice = "";
+          storyRole = "";
+        };
+      };
+      case (?answers) { answers };
+    };
+
+    // Update only the hasCompletedBackground flag
+    let updatedAnswers : CharacterQuestionnaireAnswers = {
+      existingAnswers with
+      hasCompletedBackground = true;
+    };
+
+    project.characterAnswers.add(characterName, updatedAnswers);
+    projects.add(projectId, project);
+  };
+
+  public shared ({ caller }) func markBackgroundAndCreateCharacter(projectId : Text, characterName : Text, background : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can mark background complete and create character");
+    };
+    let project = switch (projects.get(projectId)) {
+      case (null) { Runtime.trap("Project not found!") };
+      case (?p) { p };
+    };
+    if (not canModifyProject(caller, project)) {
+      Runtime.trap("Unauthorized: You can only mark background complete for your own projects");
+    };
+
+    // Retrieve existing answers or initialize new ones with default values
+    let existingAnswers = switch (project.characterAnswers.get(characterName)) {
+      case (null) {
+        {
+          hasCompletedBackground = false;
+          hasCompletedOtherSections = false;
+          motivations = "";
+          relationships = "";
+          flaws = "";
+          voice = "";
+          storyRole = "";
+        };
+      };
+      case (?answers) { answers };
+    };
+
+    // Update hasCompletedBackground and create character
+    let updatedAnswers : CharacterQuestionnaireAnswers = {
+      existingAnswers with
+      hasCompletedBackground = true;
+      // Preserve other fields
+    };
+
+    project.characterAnswers.add(characterName, updatedAnswers);
+
+    let newCharacter : Character = {
+      name = characterName;
+      background;
+      motivations = updatedAnswers.motivations;
+      relationships = updatedAnswers.relationships;
+      flaws = updatedAnswers.flaws;
+      voice = updatedAnswers.voice;
+      storyRole = updatedAnswers.storyRole;
+    };
+    project.characters.add(characterName, newCharacter);
+
+    projects.add(projectId, project);
+  };
+
+  public query ({ caller }) func getCharacterQuestionnaireAnswers(projectId : Text, characterName : Text) : async ?CharacterQuestionnaireAnswers {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view character questionnaire answers");
+    };
+
+    let project = switch (projects.get(projectId)) {
+      case (null) { Runtime.trap("Project not found!") };
+      case (?p) { p };
+    };
+
+    if (not canAccessProject(caller, project)) {
+      Runtime.trap("Unauthorized: You can only view character questionnaire answers for your own projects");
+    };
+
+    project.characterAnswers.get(characterName);
+  };
+
+  let projects = Map.empty<Text, BookProject>();
 };

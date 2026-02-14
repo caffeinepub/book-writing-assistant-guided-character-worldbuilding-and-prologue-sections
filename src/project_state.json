@@ -1,52 +1,32 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project involves a character/family questionnaire system; update the family questionnaire to be a multiple-choice flow that builds a complete character background including parent/child relationships (main character must be someone's son/daughter).",
-  "architectural_notes": [
-    "Family questionnaire should be multiple-choice (minimal/no free-text) and produce a complete character background including required parent-child relationship (main character must be someone’s son/daughter)."
-  ],
-  "known_issues": [
-    "Current family questionnaire requires users to write things down / relies on free-text instead of a guided multiple-choice flow."
-  ],
-  "isFixRequest": true,
+  "summary": "App includes multi-stage character questionnaires; add support for creating bands/groups with a dedicated questionnaire and larger member counts.",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-replace-the-current-free-text-details-step-in-the-family-questionnaire-multicharacterquestionnairedialog-with-a-guided-multiple-choice-questionnaire-of-50-questions-per-person-so-users-do-not-need-to-write-long-answers-manually",
-      "title": "Replace the current free-text “details” step in the Family Questionnaire (MultiCharacterQuestionnaireDialog) with a guided, multiple-choice questionnaire of ~50 questions per person, so users do not need to write long answers manually.",
+      "id": "feature-replace-the-current-freeform-create-band-group-flow-with-a-dedicated-band-group-questionnaire-flow-that-is-separate-from-the-existing-single-character-questionnaire-and-the-family-questionnaire-the-band-group-flow-must-ask-at-least-one-band-group-level-setup-section-e-g-group-name-and-basic-concept-and-then-run-a-per-member-questionnaire-section-produce-the-same-final-output-as-today-create-multiple-characters-in-the-selected-project-name-background-motivations-relationships-flaws-voice-storyrole-keep-user-facing-text-in-english",
+      "title": "Replace the current freeform “Create Band/Group” flow with a dedicated Band/Group questionnaire flow that is separate from the existing single-character questionnaire and the family questionnaire.\n\nThe Band/Group flow must:\n- Ask at least one band/group-level setup section (e.g., group name and basic concept) and then run a per-member questionnaire section.\n- Produce the same final output as today: create multiple Characters in the selected project (name, background, motivations, relationships, flaws, voice, storyRole).\n- Keep user-facing text in English.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-create-a-dedicated-reusable-question-bank-and-answer-model-for-the-family-questionnaire-similar-in-structure-to-frontend-src-components-booksetup-booksetupquestions-ts-including-stable-question-ids-labels-option-values-and-question-types-and-use-it-to-render-the-multiple-choice-flow",
-      "title": "Create a dedicated, reusable question bank and answer model for the Family Questionnaire (similar in structure to frontend/src/components/bookSetup/bookSetupQuestions.ts), including stable question IDs, labels, option values, and question types, and use it to render the multiple-choice flow.",
+      "id": "feature-increase-the-band-group-member-count-selection-limit-to-support-large-groups-beyond-7-members-update-the-band-group-member-count-ui-to-allow-a-configurable-maximum-of-at-least-45-members-and-ensure-the-flow-remains-usable-at-that-size-basic-validation-and-navigation-still-work",
+      "title": "Increase the Band/Group member count selection limit to support large groups beyond 7 members.\n\nUpdate the Band/Group member-count UI to allow a configurable maximum of at least 45 members, and ensure the flow remains usable at that size (basic validation and navigation still work).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-generate-each-character-s-final-saved-text-fields-background-motivations-relationships-flaws-voice-storyrole-from-the-selected-multiple-choice-answers-so-that-on-finish-the-created-character-records-contain-a-coherent-whole-background-without-requiring-users-to-write-it-manually",
-      "title": "Generate each character’s final saved text fields (background, motivations, relationships, flaws, voice, storyRole) from the selected multiple-choice answers, so that on Finish the created Character records contain a coherent “whole background” without requiring users to write it manually.",
+      "id": "feature-add-a-backend-batch-api-to-create-multiple-characters-in-one-call-and-update-the-frontend-band-group-creation-to-use-it-the-batch-api-must-accept-a-projectid-and-an-array-of-characters-name-background-motivations-relationships-flaws-voice-storyrole-enforce-project-access-control-consistent-with-existing-project-mutation-methods-create-all-characters-in-the-project-within-the-single-call",
+      "title": "Add a backend batch API to create multiple characters in one call, and update the frontend Band/Group creation to use it.\n\nThe batch API must:\n- Accept a projectId and an array of characters (name, background, motivations, relationships, flaws, voice, storyRole).\n- Enforce project access control consistent with existing project mutation methods.\n- Create all characters in the project within the single call.",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-family-questionnaire-to-explicitly-capture-and-enforce-the-main-character-s-family-relationship-such-that-the-main-character-must-be-someone-s-son-daughter-i-e-has-at-least-one-parent-selected-among-the-created-people-and-prevent-finishing-the-wizard-until-this-condition-is-satisfied",
-      "title": "Update the Family Questionnaire to explicitly capture and enforce the main character’s family relationship such that the main character must be someone’s son/daughter (i.e., has at least one parent selected among the created people), and prevent finishing the wizard until this condition is satisfied.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-expand-available-family-role-choices-so-the-questionnaire-can-represent-son-daughter-explicitly-not-only-a-generic-child-kid-and-ensure-the-main-character-s-role-is-captured-as-son-or-daughter-based-on-user-selection-for-both-validation-and-generated-output",
-      "title": "Expand available family role choices so the questionnaire can represent son/daughter explicitly (not only a generic “Child/Kid”), and ensure the main character’s role is captured as son or daughter (based on user selection) for both validation and generated output.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -54,12 +34,18 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Revise/fix the family questionnaire into a multiple-choice (no free-writing) ~50-question flow that generates the character’s full background including family roles (daughter/son) and enforces that the main character is the son/daughter of somebody.",
+      "summary": "Add a dedicated questionnaire flow for creating a Band/Group (separate from character questionnaire).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Increase Band/Group member selection limit beyond 7 (support larger groups, e.g., 17–45).",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Revise Family Questionnaire into 50-question multiple-choice flow that builds full character backgrounds and enforces parent/child linkage",
+  "projectName": "Add dedicated Band/Group questionnaire and increase member count limit",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

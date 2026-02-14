@@ -36,6 +36,24 @@ export interface BookSetupWorldbuildingCategoryAnswers {
   'description' : string,
   'freeformNotes' : Array<string>,
 }
+export interface CharacterInput {
+  'flaws' : string,
+  'background' : string,
+  'storyRole' : string,
+  'voice' : string,
+  'name' : string,
+  'motivations' : string,
+  'relationships' : string,
+}
+export interface CharacterQuestionnaireAnswers {
+  'flaws' : string,
+  'storyRole' : string,
+  'voice' : string,
+  'motivations' : string,
+  'hasCompletedOtherSections' : boolean,
+  'hasCompletedBackground' : boolean,
+  'relationships' : string,
+}
 export interface CharacterView {
   'flaws' : string,
   'background' : string,
@@ -69,18 +87,37 @@ export interface _SERVICE {
   >,
   'addWorldbuildingNote' : ActorMethod<[string, string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'batchCreateCharacters' : ActorMethod<
+    [string, Array<CharacterInput>],
+    undefined
+  >,
   'createProject' : ActorMethod<[string, string], undefined>,
   'deleteProject' : ActorMethod<[string], undefined>,
   'getAllProjects' : ActorMethod<[], Array<BookProjectView>>,
-  'getBookSetupAnswers' : ActorMethod<[string], [] | [BookSetupAnswers]>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCharacterQuestionnaireAnswers' : ActorMethod<
+    [string, string],
+    [] | [CharacterQuestionnaireAnswers]
+  >,
   'getProject' : ActorMethod<[string], BookProjectView>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'markBackgroundAndCreateCharacter' : ActorMethod<
+    [string, string, string],
+    undefined
+  >,
+  'markBackgroundQuestionnaireComplete' : ActorMethod<
+    [string, string],
+    undefined
+  >,
   'renameProject' : ActorMethod<[string, string], undefined>,
   'saveBookSetupAnswers' : ActorMethod<[string, BookSetupAnswers], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveCharacterQuestionnaireAnswers' : ActorMethod<
+    [string, string, CharacterQuestionnaireAnswers],
+    undefined
+  >,
   'savePrologue' : ActorMethod<
     [string, string, string, string, string, string, string],
     undefined

@@ -1,0 +1,123 @@
+import type { QuestionnaireModule } from './characterQuestionnaireTypes';
+
+export const coreCharacterModule: QuestionnaireModule = {
+  id: 'core',
+  title: 'Core Character & Family Background',
+  description: 'Build the foundation of your character with ~50 questions covering their identity, family, and background.',
+  questions: [
+    // Identity Section (10 questions)
+    { id: 'core_name', text: 'What is the character\'s full name?', type: 'text', section: 'Identity' },
+    { id: 'core_age', text: 'How old is the character?', type: 'text', section: 'Identity' },
+    { id: 'core_gender', text: 'What is the character\'s gender?', type: 'radio', section: 'Identity', options: [
+      { value: 'male', label: 'Male' },
+      { value: 'female', label: 'Female' },
+      { value: 'non-binary', label: 'Non-binary' },
+      { value: 'other', label: 'Other', allowsCustomInput: true },
+    ]},
+    { id: 'core_occupation', text: 'What is the character\'s occupation or role?', type: 'text', section: 'Identity' },
+    { id: 'core_birthplace', text: 'Where was the character born?', type: 'text', section: 'Identity' },
+    { id: 'core_current_location', text: 'Where does the character currently live?', type: 'text', section: 'Identity' },
+    { id: 'core_ethnicity', text: 'What is the character\'s ethnicity or cultural background?', type: 'text', section: 'Identity' },
+    { id: 'core_physical_appearance', text: 'Describe the character\'s physical appearance in a few words.', type: 'textarea', section: 'Identity' },
+    { id: 'core_distinguishing_features', text: 'What distinguishing features does the character have?', type: 'text', section: 'Identity' },
+    { id: 'core_education', text: 'What is the character\'s educational background?', type: 'radio', section: 'Identity', options: [
+      { value: 'no_formal', label: 'No formal education' },
+      { value: 'high_school', label: 'High school' },
+      { value: 'college', label: 'College/University' },
+      { value: 'advanced', label: 'Advanced degree' },
+      { value: 'self_taught', label: 'Self-taught' },
+      { value: 'other', label: 'Other', allowsCustomInput: true },
+    ]},
+
+    // Family Background Section (15 questions)
+    { id: 'family_structure', text: 'What type of family structure did the character grow up in?', type: 'radio', section: 'Family Background', options: [
+      { value: 'nuclear', label: 'Nuclear family (two parents)' },
+      { value: 'single_parent', label: 'Single parent' },
+      { value: 'extended', label: 'Extended family' },
+      { value: 'foster', label: 'Foster care' },
+      { value: 'orphan', label: 'Orphan/No family' },
+      { value: 'other', label: 'Other', allowsCustomInput: true },
+    ]},
+    { id: 'family_mother', text: 'Describe the character\'s relationship with their mother (or maternal figure).', type: 'textarea', section: 'Family Background' },
+    { id: 'family_father', text: 'Describe the character\'s relationship with their father (or paternal figure).', type: 'textarea', section: 'Family Background' },
+    { id: 'family_siblings', text: 'Does the character have siblings? If so, describe them.', type: 'textarea', section: 'Family Background' },
+    { id: 'family_sibling_order', text: 'What is the character\'s birth order?', type: 'radio', section: 'Family Background', options: [
+      { value: 'only_child', label: 'Only child' },
+      { value: 'oldest', label: 'Oldest' },
+      { value: 'middle', label: 'Middle child' },
+      { value: 'youngest', label: 'Youngest' },
+      { value: 'twin', label: 'Twin' },
+    ]},
+    { id: 'family_socioeconomic', text: 'What was the character\'s family\'s socioeconomic status?', type: 'radio', section: 'Family Background', options: [
+      { value: 'wealthy', label: 'Wealthy' },
+      { value: 'upper_middle', label: 'Upper middle class' },
+      { value: 'middle', label: 'Middle class' },
+      { value: 'working', label: 'Working class' },
+      { value: 'poor', label: 'Poor' },
+    ]},
+    { id: 'family_childhood_home', text: 'Describe the character\'s childhood home environment.', type: 'textarea', section: 'Family Background' },
+    { id: 'family_values', text: 'What values did the character\'s family emphasize?', type: 'textarea', section: 'Family Background' },
+    { id: 'family_traditions', text: 'What family traditions or rituals were important?', type: 'text', section: 'Family Background' },
+    { id: 'family_secrets', text: 'Were there any family secrets or hidden issues?', type: 'textarea', section: 'Family Background' },
+    { id: 'family_trauma', text: 'Did the character experience any family trauma or loss?', type: 'textarea', section: 'Family Background' },
+    { id: 'family_support', text: 'How supportive was the character\'s family?', type: 'radio', section: 'Family Background', options: [
+      { value: 'very_supportive', label: 'Very supportive' },
+      { value: 'somewhat_supportive', label: 'Somewhat supportive' },
+      { value: 'neutral', label: 'Neutral' },
+      { value: 'unsupportive', label: 'Unsupportive' },
+      { value: 'abusive', label: 'Abusive' },
+    ]},
+    { id: 'family_current_relationship', text: 'What is the character\'s current relationship with their family?', type: 'radio', section: 'Family Background', options: [
+      { value: 'close', label: 'Very close' },
+      { value: 'cordial', label: 'Cordial' },
+      { value: 'distant', label: 'Distant' },
+      { value: 'estranged', label: 'Estranged' },
+      { value: 'no_contact', label: 'No contact' },
+    ]},
+    { id: 'family_influence', text: 'How has the character\'s family shaped who they are today?', type: 'textarea', section: 'Family Background' },
+    { id: 'family_legacy', text: 'What legacy or burden does the character carry from their family?', type: 'textarea', section: 'Family Background' },
+
+    // Personality & Temperament (10 questions)
+    { id: 'personality_traits', text: 'What are the character\'s dominant personality traits?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_introvert_extrovert', text: 'Is the character more introverted or extroverted?', type: 'radio', section: 'Personality', options: [
+      { value: 'very_introverted', label: 'Very introverted' },
+      { value: 'somewhat_introverted', label: 'Somewhat introverted' },
+      { value: 'balanced', label: 'Balanced' },
+      { value: 'somewhat_extroverted', label: 'Somewhat extroverted' },
+      { value: 'very_extroverted', label: 'Very extroverted' },
+    ]},
+    { id: 'personality_strengths', text: 'What are the character\'s greatest strengths?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_weaknesses', text: 'What are the character\'s greatest weaknesses?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_fears', text: 'What does the character fear most?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_desires', text: 'What does the character desire most?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_habits', text: 'What habits or quirks does the character have?', type: 'text', section: 'Personality' },
+    { id: 'personality_coping', text: 'How does the character cope with stress?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_moral_code', text: 'What is the character\'s moral code or ethical framework?', type: 'textarea', section: 'Personality' },
+    { id: 'personality_worldview', text: 'How does the character view the world?', type: 'radio', section: 'Personality', options: [
+      { value: 'optimistic', label: 'Optimistic' },
+      { value: 'realistic', label: 'Realistic' },
+      { value: 'pessimistic', label: 'Pessimistic' },
+      { value: 'cynical', label: 'Cynical' },
+      { value: 'idealistic', label: 'Idealistic' },
+    ]},
+
+    // Life Experience (8 questions)
+    { id: 'experience_formative', text: 'What was the most formative experience in the character\'s life?', type: 'textarea', section: 'Life Experience' },
+    { id: 'experience_turning_point', text: 'What was a major turning point for the character?', type: 'textarea', section: 'Life Experience' },
+    { id: 'experience_regret', text: 'What is the character\'s biggest regret?', type: 'textarea', section: 'Life Experience' },
+    { id: 'experience_achievement', text: 'What is the character\'s proudest achievement?', type: 'text', section: 'Life Experience' },
+    { id: 'experience_loss', text: 'What significant loss has the character experienced?', type: 'textarea', section: 'Life Experience' },
+    { id: 'experience_love', text: 'Has the character experienced romantic love? Describe.', type: 'textarea', section: 'Life Experience' },
+    { id: 'experience_betrayal', text: 'Has the character been betrayed? By whom and how?', type: 'textarea', section: 'Life Experience' },
+    { id: 'experience_growth', text: 'How has the character grown or changed over time?', type: 'textarea', section: 'Life Experience' },
+
+    // Current State (7 questions)
+    { id: 'current_goals', text: 'What are the character\'s current goals?', type: 'textarea', section: 'Current State' },
+    { id: 'current_obstacles', text: 'What obstacles stand in the character\'s way?', type: 'textarea', section: 'Current State' },
+    { id: 'current_relationships', text: 'Who are the most important people in the character\'s life right now?', type: 'textarea', section: 'Current State' },
+    { id: 'current_conflicts', text: 'What internal or external conflicts is the character facing?', type: 'textarea', section: 'Current State' },
+    { id: 'current_secrets', text: 'What secrets is the character keeping?', type: 'textarea', section: 'Current State' },
+    { id: 'current_daily_life', text: 'Describe a typical day in the character\'s life.', type: 'textarea', section: 'Current State' },
+    { id: 'current_change_needed', text: 'What does the character need to change or learn?', type: 'textarea', section: 'Current State' },
+  ],
+};

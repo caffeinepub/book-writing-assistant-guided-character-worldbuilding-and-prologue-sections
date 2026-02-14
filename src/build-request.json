@@ -1,110 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Revise Family Questionnaire into 50-question multiple-choice flow that builds full character backgrounds and enforces parent/child linkage",
+  "title": "Add dedicated Band/Group questionnaire and increase member count limit",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Replace the current free-text “details” step in the Family Questionnaire (MultiCharacterQuestionnaireDialog) with a guided, multiple-choice questionnaire of ~50 questions per person, so users do not need to write long answers manually.",
+      "text": "Replace the current freeform “Create Band/Group” flow with a dedicated Band/Group questionnaire flow that is separate from the existing single-character questionnaire and the family questionnaire.\n\nThe Band/Group flow must:\n- Ask at least one band/group-level setup section (e.g., group name and basic concept) and then run a per-member questionnaire section.\n- Produce the same final output as today: create multiple Characters in the selected project (name, background, motivations, relationships, flaws, voice, storyRole).\n- Keep user-facing text in English.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "I want to fix the family questionnaire so you don't have to write stuff down but it's like a multiple choice 50 questions"
+          "The create a  Band/ Group  needs  its own questionnaire"
         ]
       },
       "acceptanceCriteria": [
-        "Opening Characters → Family Questionnaire no longer shows long free-text Textarea sections for background/motivations/relationships/flaws/voice/story role in the per-person details step.",
-        "Each person goes through a multiple-choice question flow (radio/select/checkbox style) with approximately 50 questions available (can be grouped into sections with progress).",
-        "Questions support an “Other (custom)” option where appropriate, using a short input only for that option (not long-form writing).",
-        "Users can navigate Back/Next through the question flow and see which question/section they are on."
+        "Opening “Create Band/Group” starts a multi-step questionnaire flow (not the current accordion of freeform textareas).",
+        "The flow includes at least one band/group-level step and at least one per-member step.",
+        "Completing the flow creates one Character per member in the currently selected project and the new characters appear in the Character Hub."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Create a dedicated, reusable question bank and answer model for the Family Questionnaire (similar in structure to frontend/src/components/bookSetup/bookSetupQuestions.ts), including stable question IDs, labels, option values, and question types, and use it to render the multiple-choice flow.",
+      "text": "Increase the Band/Group member count selection limit to support large groups beyond 7 members.\n\nUpdate the Band/Group member-count UI to allow a configurable maximum of at least 45 members, and ensure the flow remains usable at that size (basic validation and navigation still work).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "multiple choice 50 questions for each question that's answered"
+          "the Members choice needs to go past 7"
         ]
       },
       "acceptanceCriteria": [
-        "Family questionnaire questions are defined in a separate module (not hardcoded inline in the dialog JSX) with stable IDs and typed definitions.",
-        "The UI renders questions from the question bank and stores answers keyed by question ID per person.",
-        "Answers persist while moving between people inside the wizard (no accidental resets when navigating Next/Back within the dialog)."
+        "The “Number of Members” input in the Band/Group flow allows values greater than 7.",
+        "The maximum selectable member count is at least 45.",
+        "At 17 members and at 45 members, the user can proceed through member steps and complete creation without client-side validation breaking."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Generate each character’s final saved text fields (background, motivations, relationships, flaws, voice, storyRole) from the selected multiple-choice answers, so that on Finish the created Character records contain a coherent “whole background” without requiring users to write it manually.",
-      "target": "frontend",
+      "text": "Add a backend batch API to create multiple characters in one call, and update the frontend Band/Group creation to use it.\n\nThe batch API must:\n- Accept a projectId and an array of characters (name, background, motivations, relationships, flaws, voice, storyRole).\n- Enforce project access control consistent with existing project mutation methods.\n- Create all characters in the project within the single call.",
+      "target": "both",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "and by the and you have the characters whole background"
+          "some bands of 45 people and some K-pop groups or even more like 17"
         ]
       },
       "acceptanceCriteria": [
-        "On “Create All Characters”, each created character has non-empty, readable content in the saved Character fields derived from the chosen options.",
-        "The generated text is deterministic and based on the user’s selections (same selections produce the same output).",
-        "The Characters list and CharacterSummary view show the generated character details after creation."
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Update the Family Questionnaire to explicitly capture and enforce the main character’s family relationship such that the main character must be someone’s son/daughter (i.e., has at least one parent selected among the created people), and prevent finishing the wizard until this condition is satisfied.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "you got to remember the main character has to be the son and daughter of somebody"
-        ]
-      },
-      "acceptanceCriteria": [
-        "In the Family Questionnaire setup step, the user can designate exactly one person as the “Main Character”.",
-        "The flow requires selecting at least one parent for the main character from other people in the questionnaire before allowing “Create All Characters”.",
-        "If the user tries to finish without satisfying the rule, the UI shows a clear validation error in English and focuses the user back to the missing selection.",
-        "The generated character output reflects the relationship (e.g., main character relationships/storyRole text includes the chosen parent(s) and explicitly indicates son/daughter)."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Expand available family role choices so the questionnaire can represent son/daughter explicitly (not only a generic “Child/Kid”), and ensure the main character’s role is captured as son or daughter (based on user selection) for both validation and generated output.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "so that includes daughter son"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Family role options include explicit “Son” and “Daughter” choices (in addition to existing roles like mother/father/grandparent/other).",
-        "When a person is marked as the main character, the UI requires choosing either Son or Daughter for that person (or an equivalent explicit child role that maps to son/daughter in output).",
-        "The created character’s storyRole (or relationships) text clearly indicates son/daughter and references the selected parent(s)."
+        "Backend exposes a single method for adding multiple characters to a project in one request.",
+        "Frontend Band/Group creation uses the batch method instead of calling addCharacter repeatedly.",
+        "Creating a 45-member group completes successfully without requiring 45 separate backend calls."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (shadcn components are read-only).",
-    "Do not edit the immutable auth/actor hooks (frontend/src/hooks/useInternetIdentity.ts, useActor.ts, frontend/src/main.tsx).",
-    "Keep backend as a single Motoko actor in backend/main.mo; only introduce backend changes if strictly necessary for the questionnaire update."
+    "Do not edit files under frontend/immutablePaths (e.g., frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui).",
+    "Backend must remain a single-actor Motoko canister; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Implementing a true graph/relational family tree data model in the backend (store relationships as generated text in existing character fields for now).",
-    "Adding third-party authentication providers (only Internet Identity is supported).",
-    "Adding real-time collaboration or chat."
+    "Do not add third-party authentication methods (Internet Identity only).",
+    "Do not add real-time features (no WebSockets/chat).",
+    "Do not introduce external databases or off-chain storage."
   ],
   "imageRequirements": {
     "required": [],

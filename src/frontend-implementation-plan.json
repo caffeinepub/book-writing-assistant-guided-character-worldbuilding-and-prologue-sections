@@ -1,127 +1,83 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Family Questionnaire: 50-question multiple-choice flow with deterministic character generation and main-character parent linkage",
+  "title": "Dedicated Band/Group questionnaire flow + larger member counts + batch creation usage",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace the per-person free-text details step with a ~50-question multiple-choice flow (with Back/Next, progress, and optional short “Other” inputs).",
+      "summary": "Replace the Band/Group creation UI with a dedicated multi-step questionnaire that includes group-level setup and per-member questions, producing one Character per member.",
       "acceptanceCriteria": [
-        "Opening Characters → Family Questionnaire no longer shows long free-text Textarea sections for background/motivations/relationships/flaws/voice/story role in the per-person details step.",
-        "Each person goes through a multiple-choice question flow (radio/select/checkbox style) with approximately 50 questions available (can be grouped into sections with progress).",
-        "Questions support an “Other (custom)” option where appropriate, using a short input only for that option (not long-form writing).",
-        "Users can navigate Back/Next through the question flow and see which question/section they are on."
+        "Opening “Create Band/Group” starts a multi-step questionnaire flow (not the current accordion of freeform textareas).",
+        "The flow includes at least one band/group-level step and at least one per-member step.",
+        "Completing the flow creates one Character per member in the currently selected project and the new characters appear in the Character Hub."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "path": "frontend/src/components/characters/CreateBandWizardDialog.tsx",
           "operation": "modify",
-          "description": "Replace the current Accordion + long Textarea-based per-person 'details' UI with a guided, question-by-question multiple-choice flow driven by the family questionnaire question bank. Use shadcn-ui form primitives (e.g., RadioGroup/Select/Checkbox/Progress) to render question types and show step/section progress. Include Back/Next navigation per question and section indicators. Implement “Other (custom)” as a short input shown only when the selected option allows custom input. Verify the component's usage instructions before implementing."
+          "description": "Replace the current count+accordion UI with a dedicated Band/Group questionnaire wizard that includes (1) band/group-level setup step(s) (e.g., group name + concept) and (2) a per-member guided question flow (linear navigation with progress). Use shadcn-ui Dialog/Button/Input/Textarea/Progress (and other existing shadcn-ui primitives as needed) to implement the steps and navigation. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx",
+          "path": "frontend/src/components/characters/bandQuestionnaireQuestions.ts",
           "operation": "create",
-          "description": "Create a reusable renderer component for the per-person question flow that supports radio/select/checkbox question types, displays progress and section headers, and exposes callbacks for saving answers per question ID (including optional custom input). This component must be used by MultiCharacterQuestionnaireDialog (no orphan component). Use shadcn-ui building blocks for consistent UI. Verify the component's usage instructions before implementing."
+          "description": "Add a structured question bank for the Band/Group flow, separating group-level questions (e.g., group name, concept, genre/vibe) from per-member questions that map to the required Character fields (background, motivations, relationships, flaws, voice, storyRole). Keep all user-facing text in English."
+        },
+        {
+          "path": "frontend/src/components/characters/BandQuestionnaireFlow.tsx",
+          "operation": "create",
+          "description": "Create a reusable per-member question flow component (similar to the existing family question flow pattern) that renders questions from bandQuestionnaireQuestions.ts, tracks progress, and provides Next/Previous navigation with basic validation (at least name required per member). Use shadcn-ui form primitives and Progress to keep the flow usable. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/characters/bandQuestionnaireTextGenerator.ts",
+          "operation": "create",
+          "description": "Implement a generator that converts band/group setup answers + per-member answers into final CharacterInput objects (name, background, motivations, relationships, flaws, voice, storyRole), ensuring the output matches the fields used by the existing Character Hub and summary views."
+        },
+        {
+          "path": "frontend/src/sections/CharactersPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the “Create Band/Group” action continues to open the updated dedicated Band/Group questionnaire flow (via the existing CreateBandWizardDialog import) and that the dialog close/completion behavior still returns the user to the Character Hub with newly created characters visible."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Introduce a dedicated, reusable family questionnaire question bank with stable IDs and a typed per-person answer model; render UI from the bank and persist answers while navigating within the wizard.",
+      "summary": "Increase the Band/Group member count selection limit to a configurable max of at least 45 and keep the flow usable at large sizes.",
       "acceptanceCriteria": [
-        "Family questionnaire questions are defined in a separate module (not hardcoded inline in the dialog JSX) with stable IDs and typed definitions.",
-        "The UI renders questions from the question bank and stores answers keyed by question ID per person.",
-        "Answers persist while moving between people inside the wizard (no accidental resets when navigating Next/Back within the dialog)."
+        "The “Number of Members” input in the Band/Group flow allows values greater than 7.",
+        "The maximum selectable member count is at least 45.",
+        "At 17 members and at 45 members, the user can proceed through member steps and complete creation without client-side validation breaking."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
-          "operation": "create",
-          "description": "Create the Family Questionnaire question bank module (similar structure to frontend/src/components/bookSetup/bookSetupQuestions.ts) defining ~50 structured questions with stable IDs, section/category grouping, type (radio/select/checkbox), options (including allow-custom-input where appropriate), and display labels. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/characters/familyQuestionnaireTypes.ts",
-          "operation": "create",
-          "description": "Create typed definitions for the family questionnaire answer model (e.g., per-person answers keyed by stable question IDs, checkbox multi-select values, and optional custom inputs) and any helper types needed by the flow renderer and dialog. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
+          "path": "frontend/src/components/characters/CreateBandWizardDialog.tsx",
           "operation": "modify",
-          "description": "Extend PersonDraft to include the per-person answers map keyed by question ID (and custom input values where applicable) so answers persist across Back/Next navigation and when switching between people in the wizard. Also extend the draft model to store main-character designation and parent selection needed for validation. Verify the component's usage instructions before implementing."
+          "description": "Update the member-count step to allow selecting >7 up to a configurable maximum (set to at least 45). Add guardrails for usability at 17/45 (e.g., clamped numeric input, clear progress indicator, ability to navigate forward/back across members without excessive UI rendering). Use shadcn-ui Input/Progress/Button where applicable. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "path": "frontend/src/components/characters/BandQuestionnaireFlow.tsx",
           "operation": "modify",
-          "description": "Wire the dialog to load questions from the new family questionnaire question bank module and store answers per person keyed by stable question IDs (no inline hardcoding). Ensure state updates do not reset answers when moving between questions or between people. Verify the component's usage instructions before implementing."
+          "description": "Ensure per-member navigation and validation remain robust at large member counts (e.g., no reliance on rendering all members at once; keep state updates performant; enforce name uniqueness checks and required fields without breaking at 45). Use shadcn-ui components already adopted in the flow. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Deterministically generate each character’s saved background/motivations/relationships/flaws/voice/storyRole text from multiple-choice selections on Finish.",
+      "summary": "Update frontend Band/Group creation to use the backend batchCreateCharacters capability instead of repeated single-character calls.",
       "acceptanceCriteria": [
-        "On “Create All Characters”, each created character has non-empty, readable content in the saved Character fields derived from the chosen options.",
-        "The generated text is deterministic and based on the user’s selections (same selections produce the same output).",
-        "The Characters list and CharacterSummary view show the generated character details after creation."
+        "Backend exposes a single method for adding multiple characters to a project in one request.",
+        "Frontend Band/Group creation uses the batch method instead of calling addCharacter repeatedly.",
+        "Creating a 45-member group completes successfully without requiring 45 separate backend calls."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
-          "operation": "create",
-          "description": "Create a deterministic text generation utility that takes a person's answer model (plus family setup inputs like role and parent selections) and returns coherent, non-empty strings for background, motivations, relationships, flaws, voice, and storyRole. Ensure the output is purely derived from inputs (no randomness) and consistently formats section text for readability. Verify the component's usage instructions before implementing."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the existing useAddMultipleCharacters mutation to call the backend batchCreateCharacters capability with a single request (projectId + CharacterInput[]), instead of looping over addCharacter. Keep existing query invalidation behavior so the Character Hub refreshes after creation."
         },
         {
-          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
+          "path": "frontend/src/components/characters/CreateBandWizardDialog.tsx",
           "operation": "modify",
-          "description": "On “Create All Characters”, replace usage of free-text draft fields with generated strings from familyQuestionnaireTextGenerator for each person, and pass those generated fields into the existing create-multiple mutation so Character records contain complete details without manual writing. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Capture and enforce main-character parent linkage: exactly one main character, must have at least one parent selected among other people; block finishing and guide the user to fix missing selection; reflect linkage in generated output.",
-      "acceptanceCriteria": [
-        "In the Family Questionnaire setup step, the user can designate exactly one person as the “Main Character”.",
-        "The flow requires selecting at least one parent for the main character from other people in the questionnaire before allowing “Create All Characters”.",
-        "If the user tries to finish without satisfying the rule, the UI shows a clear validation error in English and focuses the user back to the missing selection.",
-        "The generated character output reflects the relationship (e.g., main character relationships/storyRole text includes the chosen parent(s) and explicitly indicates son/daughter)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "operation": "modify",
-          "description": "Update the setup step UI to allow selecting exactly one person as Main Character and selecting at least one parent for that main character from the other created people. Add finish-time validation that blocks “Create All Characters” unless the constraint is satisfied; show a clear English validation message and programmatically navigate the user back to the setup step and focus/scroll to the missing selection control. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
-          "operation": "modify",
-          "description": "Incorporate main-character parent linkage into deterministic generated text (relationships and/or storyRole) so it explicitly states the main character is the selected son/daughter of the chosen parent(s) by name. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Add explicit Son/Daughter family roles and require the main character’s role to be Son or Daughter for validation and generated output.",
-      "acceptanceCriteria": [
-        "Family role options include explicit “Son” and “Daughter” choices (in addition to existing roles like mother/father/grandparent/other).",
-        "When a person is marked as the main character, the UI requires choosing either Son or Daughter for that person (or an equivalent explicit child role that maps to son/daughter in output).",
-        "The created character’s storyRole (or relationships) text clearly indicates son/daughter and references the selected parent(s)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts",
-          "operation": "modify",
-          "description": "Expand FAMILY_ROLES to include explicit 'son' and 'daughter' options and update FamilyRole typing accordingly, keeping existing roles intact. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-          "operation": "modify",
-          "description": "Update setup-step validation so that if a person is selected as Main Character, their family role must be Son or Daughter (and disallow finishing until satisfied). Ensure the UI clearly prompts the user to choose Son/Daughter for the main character and that the selection is used for the parent-link validation and subsequent generation. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
-          "operation": "modify",
-          "description": "Ensure generated storyRole/relationships text uses explicit “son”/“daughter” phrasing (derived from the selected role) and references the chosen parent(s) to satisfy output requirements. Verify the component's usage instructions before implementing."
+          "description": "Ensure Band/Group completion submits the generated CharacterInput[] via the updated useAddMultipleCharacters hook (single batch call), and handles success/failure with toasts without triggering per-character requests. Use existing shadcn-ui dialog actions for disabled/loading states. Verify the component's usage instructions before implementing."
         }
       ]
     }

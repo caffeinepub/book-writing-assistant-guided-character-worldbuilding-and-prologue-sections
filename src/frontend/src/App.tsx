@@ -43,6 +43,10 @@ export default function App() {
     setQuestionnaireOpen(true);
   };
 
+  const handleQuestionnaireFinished = () => {
+    setActiveSection('characters');
+  };
+
   // Show loading state while checking authentication
   if (isInitializing) {
     return (
@@ -175,6 +179,7 @@ export default function App() {
             onOpenChange={setQuestionnaireOpen}
             projectId={questionnaireProjectId}
             projectName={selectedProject.name}
+            onFinished={handleQuestionnaireFinished}
           />
         )}
       </div>

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { BookProjectView, BookSetupAnswers } from '../backend';
+import type { BookProjectView, BookSetupAnswers, CharacterQuestionnaireAnswers, CharacterInput } from '../backend';
 
 export function useGetAllProjects() {
   const { actor, isFetching } = useActor();
@@ -142,7 +142,7 @@ export function useUpdateCharacter() {
   });
 }
 
-export function useCreateMultipleCharacters() {
+export function useAddMultipleCharacters() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
@@ -152,29 +152,10 @@ export function useCreateMultipleCharacters() {
       characters,
     }: {
       projectId: string;
-      characters: Array<{
-        name: string;
-        background: string;
-        motivations: string;
-        relationships: string;
-        flaws: string;
-        voice: string;
-        storyRole: string;
-      }>;
+      characters: CharacterInput[];
     }) => {
       if (!actor) throw new Error('Actor not initialized');
-      for (const character of characters) {
-        await actor.addCharacter(
-          projectId,
-          character.name,
-          character.background,
-          character.motivations,
-          character.relationships,
-          character.flaws,
-          character.voice,
-          character.storyRole
-        );
-      }
+      await actor.batchCreateCharacters(projectId, characters);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -212,15 +193,7 @@ export function useAddWorldbuildingNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      projectId,
-      categoryName,
-      note,
-    }: {
-      projectId: string;
-      categoryName: string;
-      note: string;
-    }) => {
+    mutationFn: async ({ projectId, categoryName, note }: { projectId: string; categoryName: string; note: string }) => {
       if (!actor) throw new Error('Actor not initialized');
       await actor.addWorldbuildingNote(projectId, categoryName, note);
     },
@@ -268,33 +241,74 @@ export function useSaveBookSetupAnswers() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      projectId,
-      answers,
-    }: {
-      projectId: string;
-      answers: BookSetupAnswers;
-    }) => {
+    mutationFn: async ({ projectId, answers }: { projectId: string; answers: BookSetupAnswers }) => {
       if (!actor) throw new Error('Actor not initialized');
       await actor.saveBookSetupAnswers(projectId, answers);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['bookSetupAnswers', variables.projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
     },
   });
 }
 
-export function useGetBookSetupAnswers(projectId: string | null) {
+export function useSaveCharacterQuestionnaireAnswers() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      characterName,
+      answers,
+    }: {
+      projectId: string;
+      characterName: string;
+      answers: CharacterQuestionnaireAnswers;
+    }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      await actor.saveCharacterQuestionnaireAnswers(projectId, characterName, answers);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+    },
+  });
+}
+
+export function useMarkBackgroundAndCreateCharacter() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      characterName,
+      background,
+    }: {
+      projectId: string;
+      characterName: string;
+      background: string;
+    }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      await actor.markBackgroundAndCreateCharacter(projectId, characterName, background);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+    },
+  });
+}
+
+export function useGetCharacterQuestionnaireAnswers(projectId: string | null, characterName: string | null) {
   const { actor, isFetching } = useActor();
 
-  return useQuery<BookSetupAnswers | null>({
-    queryKey: ['bookSetupAnswers', projectId],
+  return useQuery<CharacterQuestionnaireAnswers | null>({
+    queryKey: ['characterQuestionnaireAnswers', projectId, characterName],
     queryFn: async () => {
-      if (!actor || !projectId) return null;
-      return actor.getBookSetupAnswers(projectId);
+      if (!actor || !projectId || !characterName) return null;
+      return actor.getCharacterQuestionnaireAnswers(projectId, characterName);
     },
-    enabled: !!actor && !isFetching && !!projectId,
+    enabled: !!actor && !isFetching && !!projectId && !!characterName,
   });
 }

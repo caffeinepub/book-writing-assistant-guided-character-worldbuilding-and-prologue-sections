@@ -1,14 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Convert the Family Questionnaire into a guided ~50-question multiple-choice flow per person that produces complete character background text and enforces that the main character is explicitly a son/daughter with at least one selected parent.
+**Goal:** Replace the freeform Band/Group creation with a dedicated multi-step Band/Group questionnaire, support much larger group sizes, and create all members’ Characters efficiently via a backend batch API.
 
 **Planned changes:**
-- Replace the current per-person free-text “details” step in `MultiCharacterQuestionnaireDialog` with a Back/Next multiple-choice questionnaire (~50 questions), optionally grouped into sections with progress indicators.
-- Add support for “Other (custom)” options where appropriate, using short inputs only for that selection.
-- Create a dedicated, reusable Family Questionnaire question bank module with stable question IDs, types, labels, and option values; store answers keyed by question ID per person and persist them while navigating within the wizard.
-- Generate the saved character text fields (background, motivations, relationships, flaws, voice, storyRole) deterministically from the selected answers when finishing (“Create All Characters”).
-- Add explicit main character selection (exactly one), require the main character to be marked as Son or Daughter, and require selecting at least one parent from the other created people; block finishing with a clear validation error if missing.
-- Expand family role choices to include explicit “Son” and “Daughter” and reflect parent/child linkage in the generated output text.
+- Add a dedicated, multi-step Band/Group questionnaire flow separate from the single-character and family questionnaires, including at least one group-level setup step and per-member steps.
+- Update the Band/Group “Number of Members” selection to allow counts beyond 7, with a configurable maximum of at least 45, and keep navigation/validation usable at larger sizes.
+- Implement a backend batch API to create multiple characters in a single call (projectId + array of character fields) with existing project access control, and update the Band/Group flow to use it.
 
-**User-visible outcome:** Users can create a family by answering guided multiple-choice questions for each person; on finishing, characters are created with coherent generated backgrounds, and the wizard prevents completion until the main character is explicitly a son/daughter with at least one selected parent.
+**User-visible outcome:** Users can start “Create Band/Group” and complete a guided questionnaire that creates one Character per member in the selected project (including for large groups up to at least 45), and the new characters appear in the Character Hub.

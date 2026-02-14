@@ -2,11 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-current-free-text-details-step-in-the-family-questionnaire-multicharacterquestionnairedialog-with-a-guided-multiple-choice-questionnaire-of-50-questions-per-person-so-users-do-not-need-to-write-long-answers-manually",
-      "featureTitle": "Replace the current free-text “details” step in the Family Questionnaire (MultiCharacterQuestionnaireDialog) with a guided, multiple-choice questionnaire of ~50 questions per person, so users do not need to write long answers manually.",
+      "featureId": "feature-replace-the-current-freeform-create-band-group-flow-with-a-dedicated-band-group-questionnaire-flow-that-is-separate-from-the-existing-single-character-questionnaire-and-the-family-questionnaire-the-band-group-flow-must-ask-at-least-one-band-group-level-setup-section-e-g-group-name-and-basic-concept-and-then-run-a-per-member-questionnaire-section-produce-the-same-final-output-as-today-create-multiple-characters-in-the-selected-project-name-background-motivations-relationships-flaws-voice-storyrole-keep-user-facing-text-in-english",
+      "featureTitle": "Replace the current freeform “Create Band/Group” flow with a dedicated Band/Group questionnaire flow that is separate from the existing single-character questionnaire and the family questionnaire.\n\nThe Band/Group flow must:\n- Ask at least one band/group-level setup section (e.g., group name and basic concept) and then run a per-member questionnaire section.\n- Produce the same final output as today: create multiple Characters in the selected project (name, background, motivations, relationships, flaws, voice, storyRole).\n- Keep user-facing text in English.",
       "files": [
-        "frontend/src/components/characters/FamilyQuestionnaireQuestionFlow.tsx",
-        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx"
+        "frontend/src/components/characters/BandQuestionnaireFlow.tsx",
+        "frontend/src/components/characters/CreateBandWizardDialog.tsx",
+        "frontend/src/components/characters/bandQuestionnaireQuestions.ts",
+        "frontend/src/components/characters/bandQuestionnaireTextGenerator.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -22,13 +24,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-a-dedicated-reusable-question-bank-and-answer-model-for-the-family-questionnaire-similar-in-structure-to-frontend-src-components-booksetup-booksetupquestions-ts-including-stable-question-ids-labels-option-values-and-question-types-and-use-it-to-render-the-multiple-choice-flow",
-      "featureTitle": "Create a dedicated, reusable question bank and answer model for the Family Questionnaire (similar in structure to frontend/src/components/bookSetup/bookSetupQuestions.ts), including stable question IDs, labels, option values, and question types, and use it to render the multiple-choice flow.",
+      "featureId": "feature-increase-the-band-group-member-count-selection-limit-to-support-large-groups-beyond-7-members-update-the-band-group-member-count-ui-to-allow-a-configurable-maximum-of-at-least-45-members-and-ensure-the-flow-remains-usable-at-that-size-basic-validation-and-navigation-still-work",
+      "featureTitle": "Increase the Band/Group member count selection limit to support large groups beyond 7 members.\n\nUpdate the Band/Group member-count UI to allow a configurable maximum of at least 45 members, and ensure the flow remains usable at that size (basic validation and navigation still work).",
       "files": [
-        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-        "frontend/src/components/characters/familyQuestionnaireQuestions.ts",
-        "frontend/src/components/characters/familyQuestionnaireTypes.ts",
-        "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts"
+        "frontend/src/components/characters/BandQuestionnaireFlow.tsx",
+        "frontend/src/components/characters/CreateBandWizardDialog.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -44,11 +44,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-generate-each-character-s-final-saved-text-fields-background-motivations-relationships-flaws-voice-storyrole-from-the-selected-multiple-choice-answers-so-that-on-finish-the-created-character-records-contain-a-coherent-whole-background-without-requiring-users-to-write-it-manually",
-      "featureTitle": "Generate each character’s final saved text fields (background, motivations, relationships, flaws, voice, storyRole) from the selected multiple-choice answers, so that on Finish the created Character records contain a coherent “whole background” without requiring users to write it manually.",
+      "featureId": "feature-add-a-backend-batch-api-to-create-multiple-characters-in-one-call-and-update-the-frontend-band-group-creation-to-use-it-the-batch-api-must-accept-a-projectid-and-an-array-of-characters-name-background-motivations-relationships-flaws-voice-storyrole-enforce-project-access-control-consistent-with-existing-project-mutation-methods-create-all-characters-in-the-project-within-the-single-call",
+      "featureTitle": "Add a backend batch API to create multiple characters in one call, and update the frontend Band/Group creation to use it.\n\nThe batch API must:\n- Accept a projectId and an array of characters (name, background, motivations, relationships, flaws, voice, storyRole).\n- Enforce project access control consistent with existing project mutation methods.\n- Create all characters in the project within the single call.",
       "files": [
-        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-        "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
+        "frontend/src/components/characters/CreateBandWizardDialog.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -60,47 +60,6 @@
       ],
       "testIds": [
         "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-family-questionnaire-to-explicitly-capture-and-enforce-the-main-character-s-family-relationship-such-that-the-main-character-must-be-someone-s-son-daughter-i-e-has-at-least-one-parent-selected-among-the-created-people-and-prevent-finishing-the-wizard-until-this-condition-is-satisfied",
-      "featureTitle": "Update the Family Questionnaire to explicitly capture and enforce the main character’s family relationship such that the main character must be someone’s son/daughter (i.e., has at least one parent selected among the created people), and prevent finishing the wizard until this condition is satisfied.",
-      "files": [
-        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-        "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-expand-available-family-role-choices-so-the-questionnaire-can-represent-son-daughter-explicitly-not-only-a-generic-child-kid-and-ensure-the-main-character-s-role-is-captured-as-son-or-daughter-based-on-user-selection-for-both-validation-and-generated-output",
-      "featureTitle": "Expand available family role choices so the questionnaire can represent son/daughter explicitly (not only a generic “Child/Kid”), and ensure the main character’s role is captured as son or daughter (based on user selection) for both validation and generated output.",
-      "files": [
-        "frontend/src/components/characters/MultiCharacterQuestionnaireDialog.tsx",
-        "frontend/src/components/characters/familyQuestionnaireTextGenerator.ts",
-        "frontend/src/components/characters/multiCharacterQuestionnaireTypes.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

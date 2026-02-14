@@ -8,6 +8,8 @@ import CharacterQuestionnaire from '../components/characters/CharacterQuestionna
 import CharacterSummary from '../components/characters/CharacterSummary';
 import CreateBandWizardDialog from '../components/characters/CreateBandWizardDialog';
 import MultiCharacterQuestionnaireDialog from '../components/characters/MultiCharacterQuestionnaireDialog';
+import CharacterHub from '../components/characters/CharacterHub';
+import CharacterQuestionnaireFlowDialog from '../components/characters/CharacterQuestionnaireFlowDialog';
 import type { CharacterView } from '../backend';
 
 export default function CharactersPage() {
@@ -17,6 +19,8 @@ export default function CharactersPage() {
   const [showMultiCharacterQuestionnaire, setShowMultiCharacterQuestionnaire] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterView | null>(null);
   const [editingCharacter, setEditingCharacter] = useState<CharacterView | null>(null);
+  const [questionnaireFlowOpen, setQuestionnaireFlowOpen] = useState(false);
+  const [questionnaireSlotIndex, setQuestionnaireSlotIndex] = useState<number | null>(null);
 
   const characters = selectedProject?.characters || [];
 
@@ -29,13 +33,27 @@ export default function CharactersPage() {
     setEditingCharacter(null);
   };
 
+  const handleSlotClick = (slotIndex: number, character: CharacterView | null) => {
+    if (character) {
+      setSelectedCharacter(character);
+    } else {
+      setQuestionnaireSlotIndex(slotIndex);
+      setQuestionnaireFlowOpen(true);
+    }
+  };
+
+  const handleQuestionnaireFlowComplete = () => {
+    setQuestionnaireFlowOpen(false);
+    setQuestionnaireSlotIndex(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Characters</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Character Hub</h2>
           <p className="text-muted-foreground mt-1">
-            Create compelling characters through guided prompts
+            150 character slots with guided questionnaires
           </p>
         </div>
         <div className="flex gap-2">
@@ -54,56 +72,7 @@ export default function CharactersPage() {
         </div>
       </div>
 
-      {characters.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <User className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No characters yet</h3>
-            <p className="text-muted-foreground text-center mb-4 max-w-md">
-              Create your first character to start building your story's cast
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={() => setShowMultiCharacterQuestionnaire(true)} variant="outline" className="gap-2">
-                <UsersRound className="w-4 h-4" />
-                Family Questionnaire
-              </Button>
-              <Button onClick={() => setShowBandWizard(true)} variant="outline" className="gap-2">
-                <Users className="w-4 h-4" />
-                Create Band/Group
-              </Button>
-              <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Create Character
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {characters.map((character) => (
-            <Card
-              key={character.name}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setSelectedCharacter(character)}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  {character.name}
-                </CardTitle>
-                {character.storyRole && (
-                  <CardDescription className="line-clamp-2">{character.storyRole}</CardDescription>
-                )}
-              </CardHeader>
-              {character.background && (
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-3">{character.background}</p>
-                </CardContent>
-              )}
-            </Card>
-          ))}
-        </div>
-      )}
+      <CharacterHub characters={characters} onSlotClick={handleSlotClick} />
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -129,6 +98,16 @@ export default function CharactersPage() {
         open={showMultiCharacterQuestionnaire}
         onOpenChange={setShowMultiCharacterQuestionnaire}
       />
+
+      {questionnaireSlotIndex !== null && selectedProject && (
+        <CharacterQuestionnaireFlowDialog
+          open={questionnaireFlowOpen}
+          onOpenChange={setQuestionnaireFlowOpen}
+          projectId={selectedProject.id}
+          slotIndex={questionnaireSlotIndex}
+          onComplete={handleQuestionnaireFlowComplete}
+        />
+      )}
 
       <Dialog open={!!selectedCharacter} onOpenChange={() => setSelectedCharacter(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

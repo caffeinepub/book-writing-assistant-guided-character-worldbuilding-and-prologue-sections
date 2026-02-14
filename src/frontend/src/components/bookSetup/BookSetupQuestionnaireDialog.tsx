@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { bookSetupQuestions } from './bookSetupQuestions';
-import { useSaveBookSetupAnswers, useGetBookSetupAnswers, useRenameProject } from '../../hooks/useQueries';
+import { useSaveBookSetupAnswers, useRenameProject } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import type { BookSetupAnswers } from '../../backend';
 
@@ -24,6 +24,7 @@ interface BookSetupQuestionnaireDialogProps {
   onOpenChange: (open: boolean) => void;
   projectId: string;
   projectName: string;
+  onFinished?: () => void;
 }
 
 export default function BookSetupQuestionnaireDialog({
@@ -31,6 +32,7 @@ export default function BookSetupQuestionnaireDialog({
   onOpenChange,
   projectId,
   projectName,
+  onFinished,
 }: BookSetupQuestionnaireDialogProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -39,41 +41,6 @@ export default function BookSetupQuestionnaireDialog({
 
   const saveAnswers = useSaveBookSetupAnswers();
   const renameProject = useRenameProject();
-  const { data: savedAnswers } = useGetBookSetupAnswers(projectId);
-
-  // Load saved answers when dialog opens
-  useEffect(() => {
-    if (open && savedAnswers) {
-      const loadedAnswers: Record<string, string> = {};
-      const loadedCustomInputs: Record<string, string> = {};
-
-      // Load character answers
-      if (savedAnswers.characters.length > 0) {
-        const char = savedAnswers.characters[0];
-        loadedAnswers['characterArchetype'] = char.role || '';
-        loadedAnswers['characterBackground'] = char.background || '';
-        loadedAnswers['characterMotivation'] = char.motivations || '';
-        loadedAnswers['characterVoice'] = char.voice || '';
-      }
-
-      // Load worldbuilding answers
-      if (savedAnswers.worldbuilding.length > 0) {
-        savedAnswers.worldbuilding.forEach((wb) => {
-          if (wb.categoryName === 'worldSetting') {
-            loadedAnswers['worldSetting'] = wb.description || '';
-          } else if (wb.categoryName === 'worldTone') {
-            loadedAnswers['worldTone'] = wb.description || '';
-          }
-        });
-      }
-
-      // Load prologue answer
-      loadedAnswers['hasPrologue'] = savedAnswers.hasPrologue ? 'yes' : 'no';
-
-      setAnswers(loadedAnswers);
-      setCustomInputs(loadedCustomInputs);
-    }
-  }, [open, savedAnswers]);
 
   const currentQuestion = bookSetupQuestions[currentStep];
   const totalSteps = bookSetupQuestions.length;
@@ -156,6 +123,7 @@ export default function BookSetupQuestionnaireDialog({
     await handleSave();
     onOpenChange(false);
     setCurrentStep(0);
+    onFinished?.();
   };
 
   const selectedAnswer = answers[currentQuestion?.id] || '';

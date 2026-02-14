@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useProjects } from '../../state/useProjects';
-import { useCreateMultipleCharacters } from '../../hooks/useQueries';
+import { useAddMultipleCharacters } from '../../hooks/useQueries';
 import { toast } from 'sonner';
 import { Plus, Trash2, Users, AlertCircle } from 'lucide-react';
 import { FAMILY_ROLES, GENDER_OPTIONS, type PersonDraft, type FamilyRole, type Gender } from './multiCharacterQuestionnaireTypes';
-import type { FamilyQuestionnairePersonAnswers } from './familyQuestionnaireTypes';
+import type { FamilyQuestionnaireAnswers } from './familyQuestionnaireTypes';
 import FamilyQuestionnaireQuestionFlow from './FamilyQuestionnaireQuestionFlow';
 import { generateCharacterText } from './familyQuestionnaireTextGenerator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -22,7 +22,7 @@ interface MultiCharacterQuestionnaireDialogProps {
 
 export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }: MultiCharacterQuestionnaireDialogProps) {
   const { selectedProjectId, selectedProject } = useProjects();
-  const createMultiple = useCreateMultipleCharacters();
+  const createMultiple = useAddMultipleCharacters();
 
   const [step, setStep] = useState<'setup' | 'details'>('setup');
   const [people, setPeople] = useState<PersonDraft[]>([]);
@@ -138,38 +138,58 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
       return false;
     }
 
-    // Check against existing characters
+    // Check against existing characters in project
     const projectCharacterNames = new Set(
       (selectedProject?.characters || []).map((c) => c.name.toLowerCase())
     );
     for (const name of names) {
       if (projectCharacterNames.has(name)) {
-        const person = people.find((p) => p.name.toLowerCase() === name);
-        setValidationError(`A character named "${person?.name}" already exists in your project`);
+        const duplicateName = people.find((p) => p.name.toLowerCase() === name)?.name;
+        setValidationError(`A character named "${duplicateName}" already exists in your project`);
         return false;
       }
     }
 
-    // Check if main character is selected
+    // Validate main character selection
     if (!mainCharacterId) {
-      setValidationError('Please select exactly one person as the Main Character');
+      setValidationError('Please select a main character');
       return false;
     }
 
-    // Check if main character has Son or Daughter role
     const mainCharacter = people.find((p) => p.id === mainCharacterId);
-    if (mainCharacter && mainCharacter.familyRole !== 'son' && mainCharacter.familyRole !== 'daughter') {
-      setValidationError('The Main Character must have the family role of Son or Daughter');
+    if (!mainCharacter) {
+      setValidationError('Main character not found');
       return false;
     }
 
-    // Check if main character has at least one parent selected
-    const mainCharacterParents = mainCharacter?.questionnaireAnswers?.parentIds || [];
-    if (mainCharacterParents.length === 0) {
-      setValidationError('Please select at least one parent for the Main Character');
+    // Main character must be son or daughter
+    if (mainCharacter.familyRole !== 'son' && mainCharacter.familyRole !== 'daughter') {
+      setValidationError('Main character must be a son or daughter');
       return false;
     }
 
+    // Main character must have at least one parent selected
+    const parentIds = mainCharacter.questionnaireAnswers?.parentIds || [];
+    if (parentIds.length === 0) {
+      setValidationError('Main character must have at least one parent selected');
+      return false;
+    }
+
+    // Validate that selected parents exist and are actually parents
+    const parents = people.filter((p) => parentIds.includes(p.id));
+    if (parents.length === 0) {
+      setValidationError('Selected parents not found');
+      return false;
+    }
+
+    for (const parent of parents) {
+      if (parent.familyRole !== 'mother' && parent.familyRole !== 'father') {
+        setValidationError(`${parent.name} is not a valid parent (must be mother or father)`);
+        return false;
+      }
+    }
+
+    setValidationError(null);
     return true;
   };
 
@@ -177,7 +197,6 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
     if (!validateSetup()) {
       return;
     }
-
     setStep('details');
     setCurrentPersonIndex(0);
   };
@@ -206,8 +225,12 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
     }));
   };
 
-  const handleBackFromQuestions = () => {
-    setStep('setup');
+  const handleBackToPreviousPerson = () => {
+    if (currentPersonIndex > 0) {
+      setCurrentPersonIndex(currentPersonIndex - 1);
+    } else {
+      setStep('setup');
+    }
   };
 
   const handleNextPerson = () => {
@@ -218,12 +241,13 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
 
   const handleFinish = async () => {
     if (!selectedProjectId) {
-      toast.error('No project selected. Please select a project first.');
+      toast.error('No project selected');
       return;
     }
 
     try {
-      const characters = people.map((person) => {
+      // Generate character text from questionnaire answers
+      const charactersToCreate = people.map((person) => {
         const generated = generateCharacterText(person, person.questionnaireAnswers!, people);
         return {
           name: person.name,
@@ -238,10 +262,10 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
 
       await createMultiple.mutateAsync({
         projectId: selectedProjectId,
-        characters,
+        characters: charactersToCreate,
       });
 
-      toast.success(`Successfully created ${people.length} character${people.length > 1 ? 's' : ''}`);
+      toast.success(`Successfully created ${people.length} characters`);
       handleClose();
     } catch (error) {
       toast.error('Failed to create characters');
@@ -250,9 +274,10 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
   };
 
   const currentPerson = people[currentPersonIndex];
+  const potentialParents = people.filter(
+    (p) => (p.familyRole === 'mother' || p.familyRole === 'father') && p.id !== mainCharacterId
+  );
   const isLastPerson = currentPersonIndex === people.length - 1;
-  const mainCharacter = people.find((p) => p.id === mainCharacterId);
-  const potentialParents = people.filter((p) => p.id !== mainCharacterId);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -260,11 +285,12 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
         {step === 'setup' ? (
           <>
             <DialogHeader>
-              <DialogTitle>Multi-Character Family Questionnaire</DialogTitle>
+              <DialogTitle>Family Questionnaire Setup</DialogTitle>
               <DialogDescription>
-                Add all your characters and designate the main character with their parent(s)
+                Add family members and designate the main character
               </DialogDescription>
             </DialogHeader>
+
             <div className="space-y-6 py-4">
               {validationError && (
                 <Alert variant="destructive">
@@ -274,126 +300,125 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
               )}
 
               <div className="space-y-4">
-                {people.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No characters added yet. Click "Add Person" to start.</p>
-                  </div>
-                ) : (
-                  people.map((person, index) => (
-                    <div key={person.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">Person {index + 1}</h4>
+                {people.map((person, index) => (
+                  <div key={person.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">Person {index + 1}</h4>
+                      {people.length > 1 && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removePerson(person.id)}
-                          disabled={people.length === 1}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor={`name-${person.id}`}>Name *</Label>
+                        <Input
+                          id={`name-${person.id}`}
+                          value={person.name}
+                          onChange={(e) => updatePerson(person.id, 'name', e.target.value)}
+                          placeholder="Enter name"
+                        />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor={`name-${person.id}`}>Name *</Label>
-                          <Input
-                            id={`name-${person.id}`}
-                            placeholder="e.g., Sarah, John"
-                            value={person.name}
-                            onChange={(e) => updatePerson(person.id, 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`role-${person.id}`}>Family Role *</Label>
-                          <Select
-                            value={person.familyRole}
-                            onValueChange={(value) => updatePerson(person.id, 'familyRole', value as FamilyRole)}
-                          >
-                            <SelectTrigger id={`role-${person.id}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {FAMILY_ROLES.map((role) => (
-                                <SelectItem key={role.value} value={role.value}>
-                                  {role.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`gender-${person.id}`}>Gender *</Label>
-                          <Select
-                            value={person.gender}
-                            onValueChange={(value) => updatePerson(person.id, 'gender', value as Gender)}
-                          >
-                            <SelectTrigger id={`gender-${person.id}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {GENDER_OPTIONS.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`role-${person.id}`}>Family Role *</Label>
+                        <Select
+                          value={person.familyRole}
+                          onValueChange={(value) => updatePerson(person.id, 'familyRole', value)}
+                        >
+                          <SelectTrigger id={`role-${person.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FAMILY_ROLES.map((role) => (
+                              <SelectItem key={role.value} value={role.value}>
+                                {role.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`gender-${person.id}`}>Gender *</Label>
+                        <Select
+                          value={person.gender}
+                          onValueChange={(value) => updatePerson(person.id, 'gender', value)}
+                        >
+                          <SelectTrigger id={`gender-${person.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GENDER_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
-                  ))
-                )}
+                  </div>
+                ))}
+
+                <Button onClick={addPerson} variant="outline" className="w-full gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add Person
+                </Button>
               </div>
 
-              <Button onClick={addPerson} variant="outline" className="w-full gap-2">
-                <Plus className="w-4 h-4" />
-                Add Person
-              </Button>
-
               {people.length > 0 && (
-                <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
-                  <div className="space-y-3">
-                    <Label className="text-base font-semibold">Main Character *</Label>
+                <div className="space-y-4 border-t pt-4">
+                  <div className="space-y-2">
+                    <Label>Main Character *</Label>
                     <p className="text-sm text-muted-foreground">
-                      Select exactly one person as the main character (must be Son or Daughter)
+                      Select the main character (must be a son or daughter)
                     </p>
                     <RadioGroup value={mainCharacterId || ''} onValueChange={handleMainCharacterChange}>
-                      <div className="space-y-2">
-                        {people.map((person) => (
-                          <div key={person.id} className="flex items-center space-x-3">
+                      {people
+                        .filter((p) => p.familyRole === 'son' || p.familyRole === 'daughter')
+                        .map((person) => (
+                          <div key={person.id} className="flex items-center space-x-2">
                             <RadioGroupItem value={person.id} id={`main-${person.id}`} />
-                            <Label htmlFor={`main-${person.id}`} className="cursor-pointer font-normal">
-                              {person.name || `Person ${people.indexOf(person) + 1}`} ({FAMILY_ROLES.find((r) => r.value === person.familyRole)?.label})
+                            <Label htmlFor={`main-${person.id}`} className="cursor-pointer">
+                              {person.name || 'Unnamed'} ({person.familyRole})
                             </Label>
                           </div>
                         ))}
-                      </div>
                     </RadioGroup>
                   </div>
 
-                  {mainCharacterId && mainCharacter && potentialParents.length > 0 && (
-                    <div className="space-y-3 pt-4 border-t">
-                      <Label className="text-base font-semibold">
-                        Parent(s) of {mainCharacter.name} *
-                      </Label>
+                  {mainCharacterId && potentialParents.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>Select Parent(s) for Main Character *</Label>
                       <p className="text-sm text-muted-foreground">
-                        Select at least one parent for the main character
+                        Choose at least one parent for the main character
                       </p>
                       <div className="space-y-2">
-                        {potentialParents.map((person) => (
-                          <div key={person.id} className="flex items-center space-x-3">
-                            <input
-                              type="checkbox"
-                              id={`parent-${person.id}`}
-                              checked={mainCharacter.questionnaireAnswers?.parentIds?.includes(person.id) || false}
-                              onChange={(e) => handleParentSelectionChange(person.id, e.target.checked)}
-                              className="h-4 w-4 rounded border-gray-300"
-                            />
-                            <Label htmlFor={`parent-${person.id}`} className="cursor-pointer font-normal">
-                              {person.name || `Person ${people.indexOf(person) + 1}`} ({FAMILY_ROLES.find((r) => r.value === person.familyRole)?.label})
-                            </Label>
-                          </div>
-                        ))}
+                        {potentialParents.map((parent) => {
+                          const mainChar = people.find((p) => p.id === mainCharacterId);
+                          const isSelected = mainChar?.questionnaireAnswers?.parentIds?.includes(parent.id) || false;
+                          return (
+                            <div key={parent.id} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`parent-${parent.id}`}
+                                checked={isSelected}
+                                onChange={(e) => handleParentSelectionChange(parent.id, e.target.checked)}
+                                className="rounded border-gray-300"
+                              />
+                              <Label htmlFor={`parent-${parent.id}`} className="cursor-pointer">
+                                {parent.name} ({parent.familyRole})
+                              </Label>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -404,8 +429,9 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
-                <Button onClick={handleStartDetails} disabled={people.length === 0}>
-                  Continue to Questions
+                <Button onClick={handleStartDetails} className="gap-2">
+                  <Users className="w-4 h-4" />
+                  Start Questionnaire
                 </Button>
               </div>
             </div>
@@ -414,27 +440,25 @@ export default function MultiCharacterQuestionnaireDialog({ open, onOpenChange }
           <>
             <DialogHeader>
               <DialogTitle>
-                {currentPerson?.name || `Person ${currentPersonIndex + 1}`} ({currentPersonIndex + 1} of {people.length})
+                {currentPerson?.name || 'Person'} - Question Flow
               </DialogTitle>
               <DialogDescription>
-                {currentPerson?.familyRole && currentPerson?.gender && (
-                  <span className="capitalize">
-                    {FAMILY_ROLES.find((r) => r.value === currentPerson.familyRole)?.label} • {GENDER_OPTIONS.find((g) => g.value === currentPerson.gender)?.label}
-                    {currentPerson.questionnaireAnswers?.isMainCharacter && ' • Main Character'}
-                  </span>
-                )}
+                Person {currentPersonIndex + 1} of {people.length}
               </DialogDescription>
             </DialogHeader>
-            <FamilyQuestionnaireQuestionFlow
-              personName={currentPerson?.name || `Person ${currentPersonIndex + 1}`}
-              answers={currentPerson?.questionnaireAnswers?.answers || {}}
-              onAnswerChange={handleAnswerChange}
-              onBack={handleBackFromQuestions}
-              onNext={handleNextPerson}
-              onFinish={handleFinish}
-              isLastPerson={isLastPerson}
-              isCreating={createMultiple.isPending}
-            />
+
+            {currentPerson && (
+              <FamilyQuestionnaireQuestionFlow
+                personName={currentPerson.name}
+                answers={currentPerson.questionnaireAnswers?.answers || {}}
+                onAnswerChange={handleAnswerChange}
+                onBack={handleBackToPreviousPerson}
+                onNext={handleNextPerson}
+                onFinish={handleFinish}
+                isLastPerson={isLastPerson}
+                isCreating={createMultiple.isPending}
+              />
+            )}
           </>
         )}
       </DialogContent>
